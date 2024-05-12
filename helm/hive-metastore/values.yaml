@@ -1,0 +1,112 @@
+
+# TBD -> To Be Defined
+
+db:
+  host:
+  port: 5432
+  databaseName: hms
+  user:
+    name: hms
+    password:
+      secretName: # TBD
+      propertyName: # TBD
+
+s3:
+  url:
+  accessKey:
+    secretName: # TBD
+    propertyName: # TBD
+  secretKey:
+    secretName: # TBD
+    propertyName: # TBD
+  requestTimeout: 0
+
+aws:
+  podIamRole:
+  s3AssumeRoleArn:
+
+# As the metastore does not provide authentication/authorization mechanism,
+# everybody will be able to access and modify all metastore data.
+# So, we need to restrict access only from allowed namespace
+networkPolicies:
+  enabled: true
+  allowedNamespaceLabels: {}  # TBD
+  allowedNamespace: [] # TBD
+
+replicaCount: 2
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 1024Mi
+  requests:
+    cpu: 100m
+    memory: 512Mi
+
+logLevel: INFO
+
+initJob:
+  ttlSecondsAfterFinished: 60
+
+# Allow the metastore to be reachable from outside of the cluster
+# ** WARNING **
+#   As the metastore does not provide authentication/authorization mechanism, everybody will be able
+#   to access and modify all metastore data.
+#   So use this feature only
+#   - Temporary, for test and debugging
+#   - If access to your cluster is strictly controlled by some firewall, which will limit access to the
+#     exposed address and port.
+# ** WARNING **
+#
+exposure:
+  loadbalancer:
+    # Only metallb is currently supported by the helm chart. Contribution welcome.
+    metallb:
+      enabled: no
+      externalIp:
+      ipSharingKey:
+  nodePort:
+    enabled: no
+    value:
+
+image:
+  pullSecrets: []
+  repository: ghcr.io/sergealexandre/hive-metastore
+  tag: 3.1.3
+  pullPolicy: IfNotPresent
+
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - "ALL"
+
+servicePort: 9083
+
+# -- Annotations to be added to the pod
+podAnnotations: {}
+
+# -- Annotations to be added to all resources
+commonAnnotations: {}
+
+
+# Following will allow a renaming of all metastore kubernetes resources
+# Keep default values in usual cases.
+# -- Allow chart name overriding
+nameOverride:
+# -- Allow overriding base name of all resources
+fullNameOverride:
+# -- Will default to {{ include "metastore.fullname" . }}
+deploymentName:
+# -- Will default to {{ include "metastore.fullname" . }}
+jobName:
+# -- Will default to {{ include "metastore.fullname" . }}
+serviceName:
+# -- Will default to {{ include "metastore.fullname" . }}
+networkPolicyName:

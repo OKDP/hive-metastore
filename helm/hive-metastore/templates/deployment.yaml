@@ -1,0 +1,96 @@
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "metastore.deploymentName" . }}
+  namespace: {{ .Release.Namespace  }}
+  labels:
+    {{- include "metastore.labels" . | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "metastore.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- if or .Values.deploymentName .Values.aws.podIamRole }}
+      annotations:
+      {{- end }}
+      {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.aws.podIamRole }}
+        iam.amazonaws.com/role: {{ .Values.aws.podIamRole }}
+      {{- end }}
+      labels:
+      {{- include "metastore.labels" . | nindent 8 }}
+    spec:
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{ end }}
+      containers:
+        - name: metastore
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /metastore.sh
+          args:
+            - hms
+          {{- with .Values.containerSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: LOG_LEVEL
+              value: "{{ .Values.logLevel }}"
+          # ----------------------------- S3 configuration
+          {{- if .Values.s3.url }}
+            - name: S3_ENDPOINT
+              value: "{{ .Values.s3.url }}"
+          {{- end }}
+          {{- if .Values.s3.accessKey.secretName }}
+            - name: S3_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.s3.accessKey.secretName }}
+                  key: {{ .Values.s3.accessKey.propertyName }}
+          {{- end }}
+          {{- if .Values.s3.secretKey.secretName }}
+            - name: S3_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.s3.secretKey.secretName }}
+                  key: {{ .Values.s3.secretKey.propertyName }}
+          {{- end }}
+          {{ if .Values.aws.s3AssumeRoleArn }}
+            - name: ASSUME_ROLE_ARN
+              value: {{ .Values.aws.s3AssumeRoleArn }}
+          {{ end }}
+            - name: S3_REQUEST_TIMEOUT
+              value: "{{ .Values.s3.requestTimeout }}"
+          # ----------------------------- DB configuration
+            - name: DB_HOST
+              value: {{ .Values.db.host }}
+            - name: DB_PORT
+              value: "{{ .Values.db.port | default "5432" }}"
+            - name: HIVEMS_DB
+              value: {{ .Values.db.databaseName }}
+            - name: HIVEMS_USER
+              value: {{ .Values.db.user.name }}
+            - name: HIVEMS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.db.user.password.secretName }}
+                  key: {{ .Values.db.user.password.propertyName }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

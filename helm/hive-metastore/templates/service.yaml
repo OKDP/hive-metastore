@@ -1,0 +1,38 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "metastore.serviceName" . }}
+  namespace: {{ .Release.Namespace  }}
+  labels:
+    {{- include "metastore.labels" . | nindent 4 }}
+  {{- if or .Values.commonAnnotations .Values.exposure.loadbalancer.metallb.enabled }}
+  annotations:
+  {{- end }}
+  {{- with .Values.commonAnnotations }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- if .Values.exposure.loadbalancer.metallb.enabled }}
+  {{- with .Values.exposure.loadbalancer.metallb.externalIp }}
+    metallb.universe.tf/loadBalancerIPs:   {{ . }}
+  {{- end }}
+  {{- with .Values.exposure.loadbalancer.metallb.ipSharingKey }}
+    metallb.universe.tf/allow-shared-ip: {{ . }}
+  {{- end}}
+  {{- end}}
+spec:
+  selector:
+    {{- include "metastore.selectorLabels" . | nindent 4 }}
+  {{- if .Values.exposure.loadbalancer.metallb.enabled}}
+  type: LoadBalancer
+  {{- end }}
+  {{- if .Values.exposure.nodePort.enabled }}
+  type: NodePort
+  {{- end }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.servicePort }}
+      targetPort: 9083
+      {{- if .Values.exposure.nodePort.enabled }}
+      nodePort: {{ .Values.exposure.nodePort.value }}
+      {{ end }}

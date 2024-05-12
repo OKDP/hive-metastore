@@ -1,0 +1,64 @@
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name:  {{ include "metastore.jobName" . }}
+  namespace: {{ .Release.Namespace  }}
+  labels:
+    {{- include "metastore.labels" . | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ttlSecondsAfterFinished: {{ .Values.initJob.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+      {{- include "metastore.labels" . | nindent 8 }}
+      {{- if .Values.aws.podIamRole }}
+      annotations:
+        iam.amazonaws.com/role: {{ .Values.aws.podIamRole }}
+      {{- end }}
+    spec:
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: metastore
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /metastore.sh
+          args:
+            - init
+          {{- with .Values.containerSecurityContext }}
+          securityContext:
+          {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: LOG_LEVEL
+              value: "{{ .Values.logLevel }}"
+            # ----------------------------- DB configuration
+            - name: DB_HOST
+              value: {{ .Values.db.host }}
+            - name: DB_PORT
+              value: "{{ .Values.db.port | default "5432" }}"
+            - name: HIVEMS_DB
+              value: {{ .Values.db.databaseName }}
+            - name: HIVEMS_USER
+              value: {{ .Values.db.user.name }}
+            - name: HIVEMS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.db.user.password.secretName }}
+                  key: {{ .Values.db.user.password.propertyName }}
+      restartPolicy: Never
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
