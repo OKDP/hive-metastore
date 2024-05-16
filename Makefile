@@ -1,6 +1,6 @@
 # ------------------- Build configuration
 
-DOCKER_REPO := ghcr.io/sergealexandre
+DOCKER_REPO := quay.io/sergealexandre
 
 BUILDX_CACHE=/tmp/docker_cache
 
@@ -16,8 +16,8 @@ BUILD_TYPE=download
 # To authenticate for pushing in quay repo (img) (Use encrypted password):
 # docker login quay.io
 
-# To authenticate for pushing in github repo (helm):
-# echo $GITHUB_TOKEN | helm registry login ghcr.io/$GITHUB_USER -u $GITHUB_USER --password-stdin
+# To authenticate for pushing in quay repo (helm):
+#  helm registry login quay.io
 
 
 
@@ -51,4 +51,4 @@ docker: ## Build and push hive-metastore image using postgresql
 .PHONY: chart
 chart: ## Build and push helm chart
 	cd ./helm && helm package -d ./../tmp hive-metastore
-	helm push ./tmp/hive-metastore-0.1.0-chart.tgz oci://ghcr.io/$(DOCKER_REPO)
+	helm push ./tmp/hive-metastore-0.1.0-chart.tgz oci://${DOCKER_REPO}

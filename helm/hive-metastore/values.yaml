@@ -71,7 +71,7 @@ exposure:
 
 image:
   pullSecrets: []
-  repository: ghcr.io/sergealexandre/hive-metastore
+  repository: quay.io/sergealexandre/hive-metastore
   tag: 3.1.3
   pullPolicy: IfNotPresent
 
