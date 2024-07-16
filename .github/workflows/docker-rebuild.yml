@@ -1,0 +1,49 @@
+#
+# Copyright 2024 tosit.io
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+name: docker-rebuild 
+
+on:
+  ### Periodically rebuild all the images to fix os security vulnerabilities
+  schedule:
+    # At 05:00 AM, only on Tuesday
+    #- cron: "0 5 * * 2"
+    # https://crontab.cronhub.io/
+    # At 05:"0 AM, only on Tuesday
+    - cron: "0 5 * * 2"
+  # The release should be created manually (or with user token=pr approval/merge) in order to trigger the event
+  ### https://github.com/orgs/community/discussions/25281
+  ### Instead of using the event, we call the workflow from release-please workflow (more secure)
+  #release:
+  #  types: [published]
+
+  workflow_dispatch:
+
+# https://docs.github.com/en/actions/using-jobs/using-concurrency
+concurrency:
+  # Only cancel in-progress jobs or runs for the current workflow - matches against branch & tags
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  packages: write
+  
+jobs:
+
+  rebuild-docker-image:
+    uses: okdp/gh-workflows/.github/workflows/docker-publish-template.yml@v1
+    secrets: inherit
+

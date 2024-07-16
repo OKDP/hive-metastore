@@ -1,0 +1,65 @@
+{
+  "separate-pull-requests": true,
+  "include-v-in-tag": true,
+  "packages": {
+    "helm/hive-metastore": {
+      "component": "helm-hive-metastore",
+      "initial-version": "3.1.3-1.0.0",
+      "extra-label": "helm",
+      "tag-separator": "/",
+      "changelog-path": "CHANGELOG.md",
+      "release-type": "helm",
+      "changelog-type": "default",
+      "bump-minor-pre-major": false,
+      "bump-patch-for-minor-pre-major": false,
+      "draft": false,
+      "prerelease": false,
+      "include-component-in-tag": true
+    },
+    "docker": {
+      "component": "hive-metastore",
+      "initial-version": "1.0.0",
+      "extra-label": "docker",
+      "changelog-path": "CHANGELOG.md",
+      "release-type": "node",
+      "changelog-type": "default",
+      "bump-minor-pre-major": false,
+      "bump-patch-for-minor-pre-major": false,
+      "draft": false,
+      "prerelease": false,
+      "include-component-in-tag": false
+    }
+  },
+  "changelog-sections": [
+    {
+      "type": "feat",
+      "section": "Features"
+    },
+    {
+      "type": "fix",
+      "section": "Bug Fixes"
+    },
+    {
+      "type": "docs",
+      "section": "Documentation",
+      "hidden": false
+    },
+    {
+      "type": "refactor",
+      "section": "Refactoring",
+      "hidden": false
+    },
+    {
+      "type": "test",
+      "section": "Tests",
+      "hidden": true
+    },
+    {
+      "type": "ci",
+      "section": "Continuous Integration",
+      "hidden": true
+    }
+  ],
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
+}
+
