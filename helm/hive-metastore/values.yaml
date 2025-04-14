@@ -1,5 +1,9 @@
 # Hive metastore database configuration.
 db:
+  # -- Hive metastore driver reference.
+  driverRef: org.postgresql.Driver
+  # -- Hive metastore driver name.
+  driverName: postgresql
   # -- Hive metastore database host.
   host:
   # -- Hive metastore database port.
