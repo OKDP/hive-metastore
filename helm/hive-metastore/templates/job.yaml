@@ -44,6 +44,10 @@ spec:
             - name: LOG_LEVEL
               value: "{{ .Values.logLevel }}"
             # ----------------------------- DB configuration
+            - name: DB_DRIVER_REF
+              value: {{ .Values.db.driverRef }}
+            - name: DB_DRIVER_NAME
+              value: {{ .Values.db.driverName }} 
             - name: DB_HOST
               value: {{ .Values.db.host }}
             - name: DB_PORT

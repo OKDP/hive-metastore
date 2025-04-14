@@ -15,6 +15,8 @@ fi
 if [ -z "${HIVEMS_DB}" ]; then echo "HIVEMS_DB env variable must be defined!"; exit 1; fi
 if [ -z "${HIVEMS_USER}" ]; then echo "HIVEMS_USER env variable must be defined!"; exit 1; fi
 if [ -z "${HIVEMS_PASSWORD}" ]; then echo "HIVEMS_PASSWORD env variable must be defined!"; exit 1; fi
+if [ -z "${DB_DRIVER_REF}" ]; then echo "DB_DRIVER_REF env variable must be defined!"; exit 1; fi
+if [ -z "${DB_DRIVER_NAME}" ]; then echo "DB_DRIVER_NAME env variable must be defined!"; exit 1; fi
 if [ -z "${DB_HOST}" ]; then echo "DB_HOST env variable must be defined!"; exit 1; fi
 if [ -z "${DB_PORT}" ]; then echo "DB_PORT env variable must be defined!"; exit 1; fi
 if [ -z "${METASTORE_VERSION}" ]; then echo "METASTORE_VERSION env variable must be defined!"; exit 1; fi
@@ -104,11 +106,11 @@ cat >${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-si
   </property>
   <property>
     <name>javax.jdo.option.ConnectionDriverName</name>
-    <value>org.postgresql.Driver</value>
+    <value>${DB_DRIVER_REF}</value>
   </property>
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
-    <value>jdbc:postgresql://${DB_HOST}:${DB_PORT}/${HIVEMS_DB}</value>
+    <value>jdbc:${DB_DRIVER_NAME}://${DB_HOST}:${DB_PORT}/${HIVEMS_DB}</value>
   </property>
   <property>
     <name>javax.jdo.option.ConnectionUserName</name>
@@ -178,29 +180,41 @@ EOF
 
 export PGPASSWORD=${HIVEMS_PASSWORD}
 
-echo "Will wait for postgresql server to be ready"
-while ! pg_isready --host ${DB_HOST} --port ${DB_PORT}; do echo "Waiting for postgresql to be ready..."; sleep 2; done;
+echo "Will wait for ${DB_DRIVER_NAME} server to be ready"
+if [ "$DB_DRIVER_NAME" = "mysql" ]; then
+    while ! mysqladmin ping --host=${DB_HOST} --port=${DB_PORT} --silent; do echo "Waiting for ${DB_DRIVER_NAME} to be ready..."; sleep 2; done;
+else
+    while ! pg_isready --host=${DB_HOST} --port=${DB_PORT}; do echo "Waiting for ${DB_DRIVER_NAME} to be ready..."; sleep 2; done;
+fi
 
-echo "Will wait for \"${HIVEMS_DB}\" to exists"
-while ! psql --host ${DB_HOST} --port ${DB_PORT} -U ${HIVEMS_USER} -d ${HIVEMS_DB} -c "\c ${HIVEMS_DB}" >/dev/null 2>&1; do echo "Waiting for ${HIVEMS_DB} database to be ready..."; sleep 2; done;
-
+echo "Will wait for \"${HIVEMS_DB}\" to exist"
+if [ "$DB_DRIVER_NAME" = "mysql" ]; then
+    while ! mysql --host=${DB_HOST} --port=${DB_PORT} -u ${HIVEMS_USER} -p${HIVEMS_PASSWORD} -e "USE ${HIVEMS_DB};" >/dev/null 2>&1; do echo "Waiting for ${HIVEMS_DB} database to be ready..."; sleep 2; done;
+else
+    while ! psql --host=${DB_HOST} --port=${DB_PORT} -U ${HIVEMS_USER} -d ${HIVEMS_DB} -c "\c ${HIVEMS_DB}" >/dev/null 2>&1; do echo "Waiting for ${HIVEMS_DB} database to be ready..."; sleep 2; done;
+fi
 
 if [ "$MODE" = "init" ]; then
-  echo "Initialize schema if DBS table does not exists"
-  psql --host ${DB_HOST} --port ${DB_PORT} -U ${HIVEMS_USER} -d ${HIVEMS_DB}  -c 'SELECT "DB_ID" FROM "DBS"' >/dev/null 2>&1;
-  if [ $? -ne 0 ]
-  then
-    echo "Will initialize  the DB"
-    ${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/bin/schematool -initSchema -dbType postgres
-  fi
-  echo "DATABASE SCHEMA SHOULD BE OK NOW!!"
-  exit 0
+    echo "Initialize schema if DBS table does not exist"
+    if [ "$DB_DRIVER_NAME" = "mysql" ]; then
+        mysql --host=${DB_HOST} --port=${DB_PORT} -u ${HIVEMS_USER} -p${HIVEMS_PASSWORD} -D ${HIVEMS_DB} -e 'SELECT "DB_ID" FROM "DBS"' >/dev/null 2>&1;
+        if [ $? -ne 0 ]; then echo "Will initialize the DB"; ${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/bin/schematool -initSchema -dbType ${DB_DRIVER_NAME}; fi
+    else
+        psql --host=${DB_HOST} --port=${DB_PORT} -U ${HIVEMS_USER} -d ${HIVEMS_DB} -c 'SELECT "DB_ID" FROM "DBS"' >/dev/null 2>&1;
+        if [ $? -ne 0 ]; then echo "Will initialize the DB"; ${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/bin/schematool -initSchema -dbType ${DB_DRIVER_NAME}; fi
+    fi
+    echo "DATABASE SCHEMA SHOULD BE OK NOW!!"
+    exit 0
 fi
 
 # MODE = "hms" here
 
 echo "Will wait for database schema to be ready...."
-while ! psql --host ${DB_HOST} --port ${DB_PORT} -U ${HIVEMS_USER} -d ${HIVEMS_DB} -c 'SELECT "SCHEMA_VERSION" FROM "VERSION"' >/dev/null 2>&1; do echo "Waiting for ${HIVEMS_DB} schema to be ready..."; sleep 2; done;
+if [ "$DB_DRIVER_NAME" = "mysql" ]; then
+    while ! mysql --host=${DB_HOST} --port=${DB_PORT} -u ${HIVEMS_USER} -p${HIVEMS_PASSWORD} -D ${HIVEMS_DB} -e 'SELECT "SCHEMA_VERSION" FROM "VERSION"' >/dev/null 2>&1; do echo "Waiting for ${HIVEMS_DB} schema to be ready..."; sleep 2; done;
+else
+    while ! psql --host=${DB_HOST} --port=${DB_PORT} -U ${HIVEMS_USER} -d ${HIVEMS_DB} -c 'SELECT "SCHEMA_VERSION" FROM "VERSION"' >/dev/null 2>&1; do echo "Waiting for ${HIVEMS_DB} schema to be ready..."; sleep 2; done;
+fi
 echo "DATABASE SCHEMA IS OK. CAN LAUNCH!!"
 echo ""
 
