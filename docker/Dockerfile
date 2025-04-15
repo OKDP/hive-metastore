@@ -1,3 +1,13 @@
+
+
+# Take reference From:
+#   https://github.com/apache/spark-docker
+#   3.5.0/scala2.12-java11-ubuntu/Dockerfile
+#
+#  https://hub.docker.com/_/eclipse-temurin/tags?page=1&name=11-jre-focal
+#
+#  NB: Got jdbc issue with FROM eclipse-temurin:8u402-b06-jre-alpine
+#
 FROM eclipse-temurin:11-jre-focal
 
 ARG ARG_HADOOP_VERSION=3.2.0
