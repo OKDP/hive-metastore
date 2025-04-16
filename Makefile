@@ -29,9 +29,9 @@ DOCKER_PUSH := --push
 METASTORE_VERSION := 3.1.3
 HADOOP_VERSION = 3.2.0  # Does not works with 3.2.4
 JDBC_VERSION := 42.7.3
-IMAGE_TAG := 3.1.4
+IMAGE_TAG := 3.1.3
 
-APP_VERSION := 3.1.4
+APP_VERSION := 3.1.3
 HELM_VERSION := 0.1.0
 
 # You can switch between simple (faster) docker build or multiplatform one.
