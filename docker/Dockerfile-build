@@ -1,5 +1,5 @@
 # Need these versions of maven and jdk
-FROM maven:3.8-jdk-8 as builder
+FROM maven:3-jdk-9 as builder
 
 ARG ARG_METASTORE_VERSION
 
