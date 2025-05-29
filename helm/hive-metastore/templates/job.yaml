@@ -30,10 +30,6 @@ spec:
         - name: metastore
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command:
-            - /metastore.sh
-          args:
-            - init
           {{- with .Values.containerSecurityContext }}
           securityContext:
           {{- toYaml . | nindent 12 }}
@@ -61,6 +57,14 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.db.user.password.secretName }}
                   key: {{ .Values.db.user.password.propertyName }}
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              TABLE_EXISTS=$(mysql -h $DB_HOST -u$HIVEMS_USER -p$HIVEMS_PASSWORD -D $HIVEMS_DB -sN -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '${HIVEMS_DB}' AND table_name = 'METASTORE_DB_PROPERTIES';")
+              echo "TABLE_EXISTS: $TABLE_EXISTS"
+              if [ "$TABLE_EXISTS" != "" ] && [ "$TABLE_EXISTS" -eq 0 ]; then
+                /metastore.sh init
+              fi
       restartPolicy: Never
       {{- with .Values.podSecurityContext }}
       securityContext:

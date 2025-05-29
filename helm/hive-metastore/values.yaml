@@ -24,6 +24,8 @@ db:
 s3:
   # -- S3 endpoint
   url:
+  # -- S3 warehouse directory/bucket name
+  warehouseDirectory:
   accessKey:
     # -- S3 access key existing kubernetes secret name
     secretName:
@@ -34,6 +36,10 @@ s3:
     secretName:
     # -- S3 secret key kubernetes secret key containing the secretName
     propertyName:
+  # -- Proxy configuration (if needed)
+  proxy:
+    host:
+    port:
   requestTimeout: 0
 
 aws:

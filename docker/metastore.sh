@@ -26,6 +26,9 @@ if [ -z "${HADOOP_VERSION}" ]; then echo "HADOOP_VERSION env variable must be de
 #if [ -z "${S3_ENDPOINT}" ]; then echo "S3_ENDPOINT env variable must be defined!"; exit 1; fi
 #if [ -z "${S3_ACCESS_KEY}" ]; then echo "S3_ACCESS_KEY env variable must be defined!"; exit 1; fi
 #if [ -z "${S3_SECRET_KEY}" ]; then echo "S3_SECRET_KEY env variable must be defined!"; exit 1; fi
+#if [ -z "${S3_WAREHOUSE_DIRECTORY}" ]; then echo "S3_WAREHOUSE_DIRECTORY env variable must be defined!"; exit 1; fi
+#if [ -z "${S3_PROXY_HOST}" ]; then echo "S3_PROXY_HOST env variable must be defined!"; exit 1; fi
+#if [ -z "${S3_PROXY_PORT}" ]; then echo "S3_PROXY_PORT env variable must be defined!"; exit 1; fi
 
 if [ -z "${JAVA_HOME}" ]; then export JAVA_HOME=/usr/local/openjdk-8; fi
 if [ -z "${BASEDIR}" ]; then export BASEDIR=/opt; fi
@@ -154,6 +157,31 @@ cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-s
 EOF
 fi
 
+if [ ! -z "${S3_WAREHOUSE_DIRECTORY}" ]
+then
+cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-site.xml <<-EOF
+  <property>
+    <name>metastore.warehouse.dir</name>
+    <value>s3a://${S3_WAREHOUSE_DIRECTORY}/hive-warehouse/</value>
+  </property>
+EOF
+fi
+
+if [ ! -z "${S3_PROXY_HOST}" ]
+then
+cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-site.xml <<-EOF
+  <property>
+    <name>fs.s3a.proxy.host</name>
+    <value>${S3_PROXY_HOST}</value>
+  </property>
+  <property>
+    <name>fs.s3a.proxy.port</name>
+    <value>${S3_PROXY_PORT}</value>
+  </property>
+EOF
+fi
+
+
 if [ ! -z "${ASSUME_ROLE_ARN}" ]
 then
 cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-site.xml <<-EOF
@@ -198,7 +226,7 @@ if [ "$MODE" = "init" ]; then
     echo "Initialize schema if DBS table does not exist"
     if [ "$DB_DRIVER_NAME" = "mysql" ]; then
         mysql --host=${DB_HOST} --port=${DB_PORT} -u ${HIVEMS_USER} -p${HIVEMS_PASSWORD} -D ${HIVEMS_DB} -e 'SELECT "DB_ID" FROM "DBS"' >/dev/null 2>&1;
-        if [ $? -ne 0 ]; then echo "Will initialize the DB"; ${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/bin/schematool -initSchema -dbType ${DB_DRIVER_NAME}; fi
+        if [ $? -ne 0 ]; then echo "Will initialize the DB"; ${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/bin/schematool -initSchema -dbType ${DB_DRIVER_NAME} -userName ${HIVEMS_USER} -passWord ${HIVEMS_PASSWORD} -url "jdbc:mysql://${DB_HOST}:${DB_PORT}/${HIVEMS_DB}?createDatabaseIfNotExist=true&connectTimeout=1000"; fi
     else
         psql --host=${DB_HOST} --port=${DB_PORT} -U ${HIVEMS_USER} -d ${HIVEMS_DB} -c 'SELECT "DB_ID" FROM "DBS"' >/dev/null 2>&1;
         if [ $? -ne 0 ]; then echo "Will initialize the DB"; ${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/bin/schematool -initSchema -dbType ${DB_DRIVER_NAME}; fi
@@ -211,7 +239,7 @@ fi
 
 echo "Will wait for database schema to be ready...."
 if [ "$DB_DRIVER_NAME" = "mysql" ]; then
-    while ! mysql --host=${DB_HOST} --port=${DB_PORT} -u ${HIVEMS_USER} -p${HIVEMS_PASSWORD} -D ${HIVEMS_DB} -e 'SELECT "SCHEMA_VERSION" FROM "VERSION"' >/dev/null 2>&1; do echo "Waiting for ${HIVEMS_DB} schema to be ready..."; sleep 2; done;
+    while ! mysql --host=${DB_HOST} --port=${DB_PORT} -u ${HIVEMS_USER} -p${HIVEMS_PASSWORD} -D ${HIVEMS_DB} -e "SELECT "SCHEMA_VERSION" FROM "VERSION"" >/dev/null 2>&1; do echo "Waiting for ${HIVEMS_DB} schema to be ready..."; sleep 2; done;
 else
     while ! psql --host=${DB_HOST} --port=${DB_PORT} -U ${HIVEMS_USER} -d ${HIVEMS_DB} -c 'SELECT "SCHEMA_VERSION" FROM "VERSION"' >/dev/null 2>&1; do echo "Waiting for ${HIVEMS_DB} schema to be ready..."; sleep 2; done;
 fi
