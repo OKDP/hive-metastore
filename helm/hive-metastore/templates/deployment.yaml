@@ -56,6 +56,10 @@ spec:
             - name: S3_ENDPOINT
               value: "{{ .Values.s3.url }}"
           {{- end }}
+          {{- if .Values.s3.warehouseDirectory }}
+            - name: S3_WAREHOUSE_DIRECTORY
+              value: "{{ .Values.s3.warehouseDirectory }}"
+          {{- end }}
           {{- if .Values.s3.accessKey.secretName }}
             - name: S3_ACCESS_KEY
               valueFrom:
@@ -70,6 +74,12 @@ spec:
                   name: {{ .Values.s3.secretKey.secretName }}
                   key: {{ .Values.s3.secretKey.propertyName }}
           {{- end }}
+          {{ if .Values.s3.proxy }}
+            - name: S3_PROXY_HOST
+              value: "{{ .Values.s3.proxy.host }}"
+            - name: S3_PROXY_PORT
+              value: "{{ .Values.s3.proxy.port }}"
+          {{- end }}
           {{ if .Values.aws.s3AssumeRoleArn }}
             - name: ASSUME_ROLE_ARN
               value: {{ .Values.aws.s3AssumeRoleArn }}
@@ -80,7 +90,7 @@ spec:
             - name: DB_DRIVER_REF
               value: {{ .Values.db.driverRef }}
             - name: DB_DRIVER_NAME
-              value: {{ .Values.db.driverName }}  
+              value: {{ .Values.db.driverName }}
             - name: DB_HOST
               value: {{ .Values.db.host }}
             - name: DB_PORT
