@@ -6,7 +6,7 @@
 #
 #  NB: Got jdbc issue with FROM eclipse-temurin:8u402-b06-jre-alpine
 #
-FROM eclipse-temurin:11-jre-focal
+FROM eclipse-temurin:19-jre-focal
 #FROM eclipse-temurin:8-jre-noble
 
 ARG ARG_HADOOP_VERSION=3.2.0
