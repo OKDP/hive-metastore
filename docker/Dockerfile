@@ -67,7 +67,7 @@ RUN curl -sLO "https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_j
     && mv jmx_prometheus_javaagent-${JMX_PROMETHEUS_JAVAAGENT_VERSION}.jar /prometheus/ \
     && chmod 644 /prometheus/jmx_prometheus_javaagent-${JMX_PROMETHEUS_JAVAAGENT_VERSION}.jar
 
-COPY config.yaml /prometheus
+COPY docker/config.yaml /prometheus
 
 COPY docker/metastore.sh /metastore.sh
 
