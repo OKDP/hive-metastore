@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.1.3-1.2.0](https://github.com/OKDP/hive-metastore/compare/v3.1.3-1.1.0...v3.1.3-1.2.0) (2025-06-11)
+
+
+### chore
+
+* release 3.1.3-1.2.0 ([f66acde](https://github.com/OKDP/hive-metastore/commit/f66acde58db76c7dfafe0ed50c0817fe5999f1f2))
+
+
+### Features
+
+* Include security changes ([0fdec35](https://github.com/OKDP/hive-metastore/commit/0fdec351dd4154418561d4630b21cbb1bad648f9))
+* Integrate log4shell & jmx metrics exporter ([8fa6386](https://github.com/OKDP/hive-metastore/commit/8fa638676321e2f2f0c97207f5b47173e206ee53))
+
 ## [3.1.3-1.1.0](https://github.com/OKDP/hive-metastore/compare/v3.1.3-1.0.0...v3.1.3-1.1.0) (2025-04-22)
 
 
