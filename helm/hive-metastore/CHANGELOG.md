@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.3-1.2.0](https://github.com/OKDP/hive-metastore/compare/helm-hive-metastore/v3.1.3-1.2.0...helm-hive-metastore/v3.1.3-1.2.0) (2025-06-11)
+
+
+### chore
+
+* release 3.1.3-1.2.0 ([6619d81](https://github.com/OKDP/hive-metastore/commit/6619d81a6d65a2f8f04123b59e95da98b9b4e9e7))
+
 ## [3.1.3-1.2.0](https://github.com/OKDP/hive-metastore/compare/helm-hive-metastore/v3.1.3-1.1.0...helm-hive-metastore/v3.1.3-1.2.0) (2025-06-11)
 
 
