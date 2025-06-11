@@ -62,14 +62,14 @@ Create the name of the deployment
 {{- end }}
 
 {{/*
-Create the name of the jpb
+Create the name of the job
 */}}
 {{- define "metastore.jobName" -}}
 {{- default (printf "%s" (include "metastore.fullname" .)) .Values.jobName }}
 {{- end }}
 
 {{/*
-Create the name of the jpb
+Create the name of the service
 */}}
 {{- define "metastore.serviceName" -}}
 {{- default (printf "%s" (include "metastore.fullname" .)) .Values.serviceName }}
@@ -82,3 +82,16 @@ Create the name of the network policy
 {{- default (printf "%s" (include "metastore.fullname" .)) .Values.networkPolicyName }}
 {{- end }}
 
+{{/*
+Create the name of the hpa
+*/}}
+{{- define "metastore.hpa" -}}
+{{- default (printf "%s" (include "metastore.fullname" .)) .Values.hpaName }}
+{{- end }}
+
+{{/*
+Create the name of the service account
+*/}}
+{{- define "metastore.serviceAccount" -}}
+{{- default (printf "%s" (include "metastore.fullname" .)) .Values.serviceAccount.name }}
+{{- end }}

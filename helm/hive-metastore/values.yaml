@@ -24,28 +24,28 @@ db:
 s3:
   # -- S3 endpoint
   url:
-  # -- S3 warehouse directory/bucket name
+  # -- S3 warehouse directory/bucket name.
   warehouseDirectory:
   accessKey:
-    # -- S3 access key existing kubernetes secret name
+    # -- S3 access key existing kubernetes secret name.
     secretName:
-    # -- S3 access key kubernetes secret key containing the accessKey
+    # -- S3 access key kubernetes secret key containing the accessKey.
     propertyName:
   secretKey:
-    # -- S3 secret key existing kubernetes secret name
+    # -- S3 secret key existing kubernetes secret name.
     secretName:
-    # -- S3 secret key kubernetes secret key containing the secretName
+    # -- S3 secret key kubernetes secret key containing the secretName.
     propertyName:
-  # -- Proxy configuration (if needed)
+  # -- Proxy configuration (if needed).
   proxy:
     host:
     port:
   requestTimeout: 0
 
 aws:
-  # -- AWS Pod execution IAM role
+  # -- AWS Pod execution IAM role.
   podIamRole:
-  # -- S3 IAM role ARN for hive-metastore access to S3
+  # -- S3 IAM role ARN for hive-metastore access to S3.
   s3AssumeRoleArn:
 
 # As the metastore does not provide authentication/authorization mechanism,
@@ -56,7 +56,7 @@ networkPolicies:
   allowedNamespaceLabels: {}
   allowedNamespace: []
 
-# -- Desired number of hive-metastore pods to run.
+# -- Desired number of hive-metastore pods to run. Set 'replicaCount' to 0 or leave it unused when autoscaling is enabled.
 replicaCount: 2
 
 # -- Resource requests and limits for the hive-metastore pod.
@@ -67,6 +67,14 @@ resources:
   requests:
     cpu: 100m
     memory: 512Mi
+
+# -- Enable autoscaling for the hive-metastore component. Disable 'autoscaling' when using the replicaCount parameter.
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage:
+  targetMemoryUtilizationPercentage:
 
 # -- Log4j2 log level. One of `` `debug`, `info`, `warn`, `error`, `fatal`, `trace`
 logLevel: INFO
@@ -107,6 +115,15 @@ image:
   # -- Image pull policy.
   pullPolicy: IfNotPresent
 
+# -- Specifies whether a service account should be created.
+serviceAccount:
+  create: true
+  # Annotations to add to the service account.
+  annotations: {}
+  # The name of the service account to use.
+  name: ""
+
+# -- Security profile for the hive-metastore pod.
 podSecurityContext:
   runAsNonRoot: true
   seccompProfile:
@@ -119,21 +136,28 @@ containerSecurityContext:
     drop:
       - "ALL"
 
-# -- Hive metastore service port
+# -- Node selector for the hive-metastore pod.
+nodeSelector: {}
+# -- Tolerations for the hive-metastore pod.
+tolerations: []
+# -- Affinity for the hive-metastore pod.
+affinity: {}
+
+# -- Hive metastore service port.
 servicePort: 9083
 
-# -- Annotations to be added to the pod
+# -- Annotations to be added to the pod.
 podAnnotations: {}
 
-# -- Annotations to be added to all resources
+# -- Annotations to be added to all resources.
 commonAnnotations: {}
 
 
 # Following will allow a renaming of all metastore kubernetes resources
 # Keep default values in usual cases.
-# -- Allow chart name overriding
+# -- Allow chart name overriding.
 nameOverride:
-# -- Allow overriding base name of all resources
+# -- Allow overriding base name of all resources.
 fullNameOverride:
 # -- Will default to {{ include "metastore.fullname" . }}
 deploymentName:
@@ -143,3 +167,5 @@ jobName:
 serviceName:
 # -- Will default to {{ include "metastore.fullname" . }}
 networkPolicyName:
+# -- Will default to {{ include "metastore.fullname" . }}
+hpaName:
