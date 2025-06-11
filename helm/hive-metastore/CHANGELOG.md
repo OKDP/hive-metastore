@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.2.0-1.1.0](https://github.com/OKDP/hive-metastore/compare/helm-hive-metastore/v3.1.3-1.1.0...helm-hive-metastore/v3.2.0-1.1.0) (2025-06-11)
+
+
+### Features
+
+* Added hpa, serviceaccount and pod security configurations ([4392b8f](https://github.com/OKDP/hive-metastore/commit/4392b8f1f4956019234563fa0a054b559841b240))
+* Integrate log4shell & jmx metrics exporter ([8fa6386](https://github.com/OKDP/hive-metastore/commit/8fa638676321e2f2f0c97207f5b47173e206ee53))
+
 ## [3.1.3-1.1.0](https://github.com/OKDP/hive-metastore/compare/helm-hive-metastore/v3.1.3-1.0.0...helm-hive-metastore/v3.1.3-1.1.0) (2025-04-22)
 
 
