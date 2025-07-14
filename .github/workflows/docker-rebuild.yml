@@ -47,3 +47,61 @@ jobs:
     uses: okdp/gh-workflows/.github/workflows/docker-publish-template.yml@v1
     secrets: inherit
 
+### Build and publish the hive-metastore 4.x version ###
+
+  build-and-publish-metastore-4x:
+    needs: rebuild-docker-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      ### Get additional 4.x metastore version
+
+      - name: Parse metastore_v4x.yaml for version
+        id: extract_version
+        run: |
+          LABEL=$(grep '"version"' docker/package.json | head -n 1 | sed -E 's/.*"version": *"([^"]+)".*/\1/')
+          SUFFIX=$(echo "$LABEL" | awk -F'-' '{if (NF>1) print $2; else print ""}')
+          echo "$SUFFIX"
+          VERSION=$(grep 'ARG_METASTORE_VERSION' metastore_4x.yaml | head -n 1 | sed 's/.*ARG_METASTORE_VERSION=//')
+          echo "argument=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Extracted version: $VERSION-$SUFFIX"
+          echo "version=$VERSION-$SUFFIX" >> $GITHUB_OUTPUT
+
+      ### Common steps between CI and Publish
+      
+      - name: Free up disk space 📦
+        uses: okdp/gh-workflows/.github/actions/free-disk-space@v1
+
+      - name: Set up QEMU and Docker Buildx 📦
+        uses: okdp/gh-workflows/.github/actions/setup-buildx@v1
+
+      - name: Set up container registry 📦
+        id: registry
+        run:  |
+            echo "registry=${{ vars.REGISTRY || inputs.registry }}" >> $GITHUB_OUTPUT
+            echo "registry_repo=${{ vars.REGISTRY || inputs.registry }}/${GITHUB_REPOSITORY_OWNER@L}" >> $GITHUB_OUTPUT
+      
+      - name: Login into ${{ steps.registry.outputs.registry }} registry 🔐
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ steps.registry.outputs.registry }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_ROBOT_TOKEN }}
+
+      - name: Build and Push Docker image with ARG_METASTORE_VERSION=${{ steps.extract_version.outputs.version }}
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.registry.outputs.registry_repo }}/okdp-hive-metastore:${{ steps.extract_version.outputs.version }}
+          labels: |
+            org.opencontainers.image.version="${{ steps.extract_version.outputs.version }}"
+            org.opencontainers.image.source="https://github.com/${{ github.repository }}"
+            org.opencontainers.image.licenses="Apache-2.0"
+          build-args: |
+            ARG_METASTORE_VERSION=${{ steps.extract_version.outputs.argument }}
+            METASTORE_SERVER="-server"
