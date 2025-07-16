@@ -38,12 +38,10 @@ RUN apt-get update && \
 
 WORKDIR /opt
 
-#RUN curl -L https://repo1.maven.org/maven2/org/apache/hive/hive-standalone-metastore/${METASTORE_VERSION}/hive-standalone-metastore-${METASTORE_VERSION}-bin.tar.gz | tar xvzf -
-
 RUN if echo $METASTORE_VERSION | grep -E '^3\.' > /dev/null; then \
         curl -L https://repo1.maven.org/maven2/org/apache/hive/hive-standalone-metastore/${METASTORE_VERSION}/hive-standalone-metastore-${METASTORE_VERSION}-bin.tar.gz | tar xvzf -; \
     elif echo $METASTORE_VERSION | grep -E '^4\.' > /dev/null; then \
-        curl -L https://repo1.maven.org/maven2/org/apache/hive/hive-standalone-metastore-server-${METASTORE_VERSION}/hive-standalone-metastore-server-${METASTORE_VERSION}-bin.tar.gz | tar xvzf -; \
+        curl -L https://repo1.maven.org/maven2/org/apache/hive/hive-standalone-metastore-server/${METASTORE_VERSION}/hive-standalone-metastore-server-${METASTORE_VERSION}-bin.tar.gz | tar xvzf -; \
     fi
 
 # dlcdn.apache.org is faster, but does not provide 3.2.0 version. So fallback on archive.apache.org
