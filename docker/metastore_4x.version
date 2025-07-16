@@ -1,0 +1,2 @@
+metastore_version:
+  - ARG_METASTORE_VERSION=4.0.1
