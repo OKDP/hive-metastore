@@ -97,7 +97,7 @@ jobs:
           file: docker/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ steps.registry.outputs.registry_repo }}/okdp-hive-metastore:${{ steps.extract_version.outputs.version }}
+          tags: ${{ steps.registry.outputs.registry_repo }}/hive-metastore:${{ steps.extract_version.outputs.version }}
           labels: |
             org.opencontainers.image.version="${{ steps.extract_version.outputs.version }}"
             org.opencontainers.image.source="https://github.com/${{ github.repository }}"
