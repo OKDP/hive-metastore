@@ -64,7 +64,7 @@ jobs:
           LABEL=$(grep '"version"' docker/package.json | head -n 1 | sed -E 's/.*"version": *"([^"]+)".*/\1/')
           SUFFIX=$(echo "$LABEL" | awk -F'-' '{if (NF>1) print $2; else print ""}')
           echo "$SUFFIX"
-          VERSION=$(grep 'ARG_METASTORE_VERSION' metastore_4x.yaml | head -n 1 | sed 's/.*ARG_METASTORE_VERSION=//')
+          VERSION=$(grep 'ARG_METASTORE_VERSION' docker/metastore_4x.version | head -n 1 | sed 's/.*ARG_METASTORE_VERSION=//')
           echo "argument=${VERSION}" >> $GITHUB_OUTPUT
           echo "Extracted version: $VERSION-$SUFFIX"
           echo "version=$VERSION-$SUFFIX" >> $GITHUB_OUTPUT
@@ -104,4 +104,3 @@ jobs:
             org.opencontainers.image.licenses="Apache-2.0"
           build-args: |
             ARG_METASTORE_VERSION=${{ steps.extract_version.outputs.argument }}
-            METASTORE_SERVER="-server"

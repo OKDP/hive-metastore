@@ -10,7 +10,6 @@ FROM eclipse-temurin:19-jre-focal
 
 ARG ARG_HADOOP_VERSION=3.4.1
 ARG ARG_METASTORE_VERSION=3.1.3
-ARG METASTORE_SERVER
 ARG ARG_JDBC_VERSION=42.7.7
 ARG MYSQL_CONNECTOR_VERSION=8.0.25
 ARG ARG_MYSQL_CLIENT_VERSION=8.0.42-0ubuntu0.20.04.1
@@ -39,7 +38,13 @@ RUN apt-get update && \
 
 WORKDIR /opt
 
-RUN curl -L https://repo1.maven.org/maven2/org/apache/hive/hive-standalone-metastore${METASTORE_SERVER}/${METASTORE_VERSION}/hive-standalone-metastore${METASTORE_SERVER}-${METASTORE_VERSION}-bin.tar.gz | tar xvzf -
+#RUN curl -L https://repo1.maven.org/maven2/org/apache/hive/hive-standalone-metastore/${METASTORE_VERSION}/hive-standalone-metastore-${METASTORE_VERSION}-bin.tar.gz | tar xvzf -
+
+RUN if echo $METASTORE_VERSION | grep -E '^3\.' > /dev/null; then \
+        curl -L https://repo1.maven.org/maven2/org/apache/hive/hive-standalone-metastore/${METASTORE_VERSION}/hive-standalone-metastore-${METASTORE_VERSION}-bin.tar.gz | tar xvzf -; \
+    elif echo $METASTORE_VERSION | grep -E '^4\.' > /dev/null; then \
+        curl -L https://repo1.maven.org/maven2/org/apache/hive/hive-standalone-metastore-server-${METASTORE_VERSION}/hive-standalone-metastore-server-${METASTORE_VERSION}-bin.tar.gz | tar xvzf -; \
+    fi
 
 # dlcdn.apache.org is faster, but does not provide 3.2.0 version. So fallback on archive.apache.org
 #RUN curl -L https://dlcdn.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz | tar zxf - && \
