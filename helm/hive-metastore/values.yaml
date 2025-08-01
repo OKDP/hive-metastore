@@ -126,6 +126,7 @@ serviceAccount:
 # -- Security profile for the hive-metastore pod.
 podSecurityContext:
   runAsNonRoot: true
+  runAsUser: 996
   seccompProfile:
     type: RuntimeDefault
 
