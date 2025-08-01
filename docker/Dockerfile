@@ -2,7 +2,7 @@ FROM eclipse-temurin:17-jre-noble
 
 ARG ARG_HADOOP_VERSION=3.3.6
 ARG ARG_METASTORE_VERSION=3.1.3
-ARG ARG_JDBC_VERSION=42.7.6
+ARG ARG_JDBC_VERSION=42.7.7
 ARG MYSQL_CONNECTOR_VERSION=8.0.25
 ARG ARG_MYSQL_CLIENT_VERSION=8.0.42-0ubuntu0.24.04.1
 ARG LOG4J_SCANNER_VERSION=2.25.0
@@ -40,21 +40,22 @@ RUN if echo $METASTORE_VERSION | grep -E '^3\.' > /dev/null; then \
 RUN curl -L https://dlcdn.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz | tar zxf - && \
     sed -i 's|if \[\[ ! -x "\$JAVA" \]\]; then|if [ \$("$JAVA" -version) ]; then|' ${HADOOP_HOME}/libexec/hadoop-functions.sh
 
-RUN curl -sL https://jdbc.postgresql.org/download/postgresql-${JDBC_VERSION}.jar -o /opt/apache-hive-metastore-${METASTORE_VERSION}-bin/lib/postgresql-${JDBC_VERSION}.jar
+RUN rm -f ${HIVE_HOME}/lib/postgresql-*.jar && \ 
+    curl -sL https://jdbc.postgresql.org/download/postgresql-${JDBC_VERSION}.jar -o /opt/apache-hive-metastore-${METASTORE_VERSION}-bin/lib/postgresql-${JDBC_VERSION}.jar
 
 # download and install mysql-connector-java
 RUN curl -sLO "https://repo1.maven.org/maven2/mysql/mysql-connector-java/${MYSQL_CONNECTOR_VERSION}/mysql-connector-java-${MYSQL_CONNECTOR_VERSION}.jar" --output mysql-connector-java-${MYSQL_CONNECTOR_VERSION}.jar \
     && mv mysql-connector-java-${MYSQL_CONNECTOR_VERSION}.jar ${HIVE_HOME}/lib/
 
 # download the log4shell scanner and run it on different paths
-RUN curl -sLO "https://repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/${LOG4J_SCANNER_VERSION}/log4j-core-${LOG4J_SCANNER_VERSION}.jar" \
+RUN curl -sLO https://repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/${LOG4J_SCANNER_VERSION}/log4j-core-${LOG4J_SCANNER_VERSION}.jar \
     && java -jar log4j-core-${LOG4J_SCANNER_VERSION}.jar --scan-log4j1 --scan-zip --scan-logback --force-fix /usr/lib || true \
     && java -jar log4j-core-${LOG4J_SCANNER_VERSION}.jar --scan-log4j1 --scan-zip --scan-logback --force-fix /var/lib || true \
     && java -jar log4j-core-${LOG4J_SCANNER_VERSION}.jar --scan-log4j1 --scan-zip --scan-logback --force-fix /opt || true \
     && rm log4j-core-${LOG4J_SCANNER_VERSION}.jar
 
 # add the Prometheus JMX exporter Java agent jar for exposing metrics
-RUN curl -sLO "https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/${JMX_PROMETHEUS_JAVAAGENT_VERSION}/jmx_prometheus_javaagent-${JMX_PROMETHEUS_JAVAAGENT_VERSION}.jar" \
+RUN curl -sLO https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/${JMX_PROMETHEUS_JAVAAGENT_VERSION}/jmx_prometheus_javaagent-${JMX_PROMETHEUS_JAVAAGENT_VERSION}.jar \
     && mkdir /opt/prometheus \
     && mv jmx_prometheus_javaagent-${JMX_PROMETHEUS_JAVAAGENT_VERSION}.jar /opt/prometheus/ \
     && chmod 644 /opt/prometheus/jmx_prometheus_javaagent-${JMX_PROMETHEUS_JAVAAGENT_VERSION}.jar
