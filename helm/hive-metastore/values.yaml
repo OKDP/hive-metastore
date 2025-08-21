@@ -42,6 +42,16 @@ s3:
     port:
   requestTimeout: 0
 
+# Cloud storage selection: "s3" or "gcs"
+cloud_storage: "s3"
+
+# GCS warehouse configuration
+gcs:
+  # -- GCS service account secret
+  serviceAccountKeyFile:
+  # -- GCS warehouse directory/bucket name
+  warehouseDirectory:
+
 aws:
   # -- AWS Pod execution IAM role.
   podIamRole:

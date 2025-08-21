@@ -1,4 +1,3 @@
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -54,6 +53,17 @@ spec:
           env:
             - name: LOG_LEVEL
               value: "{{ .Values.logLevel }}"
+          {{- if eq .Values.cloud_storage "gcs" }}
+          # ----------------------------- GCS configuration
+          {{- if .Values.gcs.serviceAccountKeyFile }}
+            - name: GCS_SERVICE_ACCOUNT_JSON_KEYFILE
+              value: "/var/secrets/google/key.json"
+          {{- end }}
+          {{- if .Values.gcs.warehouseDirectory }}
+            - name: GCS_WAREHOUSE_DIRECTORY
+              value: "{{ .Values.gcs.warehouseDirectory }}"
+          {{- end }}
+          {{- else }}
           # ----------------------------- S3 configuration
           {{- if .Values.s3.url }}
             - name: S3_ENDPOINT
@@ -89,6 +99,7 @@ spec:
           {{ end }}
             - name: S3_REQUEST_TIMEOUT
               value: "{{ .Values.s3.requestTimeout }}"
+          {{- end }}
           # ----------------------------- DB configuration
             - name: DB_DRIVER_REF
               value: {{ .Values.db.driverRef }}
@@ -107,6 +118,19 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.db.user.password.secretName }}
                   key: {{ .Values.db.user.password.propertyName }}
+          {{- if and (eq .Values.cloud_storage "gcs") .Values.gcs.serviceAccountKeyFile }}
+          volumeMounts:
+            - name: gcs-key
+              mountPath: /var/secrets/google
+              readOnly: true
+      volumes:
+        - name: gcs-key
+          secret:
+            secretName: {{ include "metastore.fullname" . }}-gcs-key
+            items:
+              - key: key.json
+                path: key.json
+          {{- end }}
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
