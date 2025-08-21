@@ -131,7 +131,46 @@ cat >${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-si
     <name>fs.s3a.connection.request.timeout</name>
     <value>${S3_REQUEST_TIMEOUT}</value>
   </property>
+    <!-- GCS connector configuration -->
+  <property>
+    <name>fs.gs.impl</name>
+    <value>com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem</value>
+    <description>The FileSystem implementation for gs: URIs</description>
+  </property>
 EOF
+
+# Add GCS configuration if environment variables are set
+if [ ! -z "${GCS_PROJECT_ID}" ]; then
+cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-site.xml <<-EOF
+  <property>
+    <name>fs.gs.project.id</name>
+    <value>${GCS_PROJECT_ID}</value>
+    <description>Google Cloud Project ID</description>
+  </property>
+EOF
+fi
+
+if [ ! -z "${GCS_SERVICE_ACCOUNT_JSON_KEYFILE}" ]; then
+cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-site.xml <<-EOF
+  <property>
+    <name>google.cloud.auth.service.account.enable</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>google.cloud.auth.service.account.json.keyfile</name>
+    <value>/var/secrets/google/key.json</value>
+  </property>
+EOF
+fi
+
+if [ ! -z "${GCS_WAREHOUSE_DIRECTORY}" ]; then
+cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-site.xml <<-EOF
+  <property>
+    <name>metastore.warehouse.dir</name>
+    <value>gs://${GCS_WAREHOUSE_DIRECTORY}/hive-warehouse/</value>
+  </property>
+EOF
+fi
 
 if [ ! -z "${S3_ENDPOINT}" ]
 then
@@ -250,6 +289,11 @@ unset PGPASSWORD
 
 export HADOOP_CLIENT_OPTS="$HADOOP_CLIENT_OPTS -Dcom.amazonaws.sdk.disableCertChecking=true"
 
+# Set Google Application Credentials environment variable if file exists
+if [ ! -z "${GCS_SERVICE_ACCOUNT_JSON_KEYFILE}" ] && [ -f "${GCS_SERVICE_ACCOUNT_JSON_KEYFILE}" ]; then
+  export GOOGLE_APPLICATION_CREDENTIALS="${GCS_SERVICE_ACCOUNT_JSON_KEYFILE}"
+fi
+
 # WARNING: This variable is set by Kubernetes in a form: tcp://XX.XX.XX.XX:9083.
 # For the metastore, this is an entry variable hosting only the listening port, as a single number. So failure.
 unset METASTORE_PORT
@@ -265,5 +309,3 @@ if [ -n "$WAIT_ON_ERROR" ]; then
 fi
 
 return $err
-
-
