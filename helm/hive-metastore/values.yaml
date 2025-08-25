@@ -42,10 +42,10 @@ s3:
     port:
   requestTimeout: 0
 
-# Cloud storage selection: "s3" or "gcs"
+# -- Cloud storage selection: "s3" or "gcs"
 cloud_storage: "s3"
 
-# GCS warehouse configuration
+# -- GCS warehouse configuration
 gcs:
   # -- GCS service account secret
   serviceAccountKeyFile:
