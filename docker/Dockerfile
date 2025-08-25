@@ -113,7 +113,7 @@ RUN mkdir -p ${HIVE_HOME}/lib/ && \
     export GCS_CONNECTOR_JAR="${GCS_CONNECTOR_JAR_HADOOP}"
 
 # Ensure GCS connector is in the classpath
-RUN echo "export HADOOP_CLASSPATH=\${HADOOP_CLASSPATH}:${HADOOP_HOME}/share/hadoop/common/lib/gcs-connector-3.0.9-sources.jar" \
+RUN echo "export HADOOP_CLASSPATH=\${HADOOP_CLASSPATH}:${HADOOP_HOME}/share/hadoop/common/lib/gcs-connector-${GCS_CONNECTOR_VERSION}-sources.jar" \
     >> ${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
 
 RUN sed -i '/<\/configuration>/i \
