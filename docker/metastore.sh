@@ -23,6 +23,7 @@ if [ -z "${METASTORE_VERSION}" ]; then echo "METASTORE_VERSION env variable must
 if [ -z "${HADOOP_VERSION}" ]; then echo "HADOOP_VERSION env variable must be defined!"; exit 1; fi
 
 # May be null in case of usage of AWS instance roles
+
 #if [ -z "${S3_ENDPOINT}" ]; then echo "S3_ENDPOINT env variable must be defined!"; exit 1; fi
 #if [ -z "${S3_ACCESS_KEY}" ]; then echo "S3_ACCESS_KEY env variable must be defined!"; exit 1; fi
 #if [ -z "${S3_SECRET_KEY}" ]; then echo "S3_SECRET_KEY env variable must be defined!"; exit 1; fi
@@ -37,7 +38,13 @@ if [ -z "${THRIFT_LISTENING_PORT}" ]; then export THRIFT_LISTENING_PORT=9083; fi
 if [ -z "${S3_REQUEST_TIMEOUT}" ]; then export S3_REQUEST_TIMEOUT=0; fi
 
 export HADOOP_HOME=${BASEDIR}/hadoop-${HADOOP_VERSION}
-export HADOOP_CLASSPATH=${HADOOP_HOME}/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar:${HADOOP_HOME}/share/hadoop/tools/lib/hadoop-aws-${HADOOP_VERSION}.jar
+export HIVE_HOME=${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin
+
+# GCS connector JAR locations - require explicit version
+# if [ -z "${GCS_CONNECTOR_VERSION}" ]; then
+#     echo "ERROR: GCS_CONNECTOR_VERSION environment variable must be specified when using GCS storage"
+#     exit 1
+# fi
 
 echo ""
 echo "METASTORE_VERSION=$METASTORE_VERSION"
@@ -149,8 +156,26 @@ cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-s
   </property>
 EOF
 fi
-
-if [ ! -z "${GCS_SERVICE_ACCOUNT_JSON_KEYFILE}" ]; then
+if [ ! -z "${GCS_WORKLOAD_IDENTITY_ENABLED}" ] && [ "${GCS_WORKLOAD_IDENTITY_ENABLED}" = "true" ]; then
+  # Workload Identity Federation configuration
+  echo "Using Workload Identity Federation for GCS authentication"
+  
+  cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-site.xml <<-EOF
+  <property>
+    <name>fs.gs.auth.type</name>
+    <value>COMPUTE</value>
+  </property>
+EOF
+# If a service account is specified for impersonation with WIF
+if [ ! -z "${GCS_IMPERSONATION_SERVICE_ACCOUNT}" ]; then
+  cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-site.xml <<-EOF
+  <property>
+    <name>fs.gs.auth.impersonation.service.account</name>
+    <value>${GCS_IMPERSONATION_SERVICE_ACCOUNT}</value>
+  </property>
+EOF
+fi
+elif [ ! -z "${GCS_SERVICE_ACCOUNT_JSON_KEYFILE}" ]; then
 cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-site.xml <<-EOF
   <property>
     <name>google.cloud.auth.service.account.enable</name>
@@ -220,7 +245,6 @@ cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-s
 EOF
 fi
 
-
 if [ ! -z "${ASSUME_ROLE_ARN}" ]
 then
 cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-site.xml <<-EOF
@@ -246,6 +270,7 @@ EOF
 # set +x
 
 export PGPASSWORD=${HIVEMS_PASSWORD}
+
 
 echo "Will wait for ${DB_DRIVER_NAME} server to be ready"
 if [ "$DB_DRIVER_NAME" = "mysql" ]; then
