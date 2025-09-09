@@ -55,7 +55,14 @@ spec:
               value: "{{ .Values.logLevel }}"
           {{- if eq .Values.cloud_storage "gcs" }}
           # ----------------------------- GCS configuration
-          {{- if .Values.gcs.serviceAccountKeyFile }}
+          {{- if .Values.gcs.workloadIdentity.enabled }}
+            - name: GCS_WORKLOAD_IDENTITY_ENABLED
+              value: "true"
+          {{- if .Values.gcs.workloadIdentity.gcpServiceAccount }}
+            - name: GCS_IMPERSONATION_SERVICE_ACCOUNT
+              value: "{{ .Values.gcs.workloadIdentity.gcpServiceAccount }}"
+          {{- end }}
+          {{- else if .Values.gcs.serviceAccountKeyFile }}
             - name: GCS_SERVICE_ACCOUNT_JSON_KEYFILE
               value: "/var/secrets/google/key.json"
           {{- end }}
@@ -118,18 +125,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.db.user.password.secretName }}
                   key: {{ .Values.db.user.password.propertyName }}
-          {{- if and (eq .Values.cloud_storage "gcs") .Values.gcs.serviceAccountKeyFile }}
+          {{- if and (eq .Values.cloud_storage "gcs") (eq .Values.gcs.workloadIdentity.enabled false) }}
           volumeMounts:
             - name: gcs-key
               mountPath: /var/secrets/google
               readOnly: true
-      volumes:
-        - name: gcs-key
-          secret:
-            secretName: {{ include "metastore.fullname" . }}-gcs-key
-            items:
-              - key: key.json
-                path: key.json
           {{- end }}
       {{- with .Values.podSecurityContext }}
       securityContext:
@@ -146,4 +146,13 @@ spec:
       {{- with .Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if and (eq .Values.cloud_storage "gcs") (eq .Values.gcs.workloadIdentity.enabled false) }}
+      volumes:
+        - name: gcs-key
+          secret:
+            secretName: {{ include "metastore.fullname" . }}-gcs-key
+            items:
+              - key: hive_metastore_gcs_key
+                path: key.json
       {{- end }}
