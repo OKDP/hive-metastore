@@ -42,6 +42,19 @@ s3:
     port:
   requestTimeout: 0
 
+# Cloud storage selection: "s3" or "gcs"
+cloud_storage: "s3"
+
+# GCS warehouse configuration
+gcs:
+  enabled: true
+  projectId: ""
+  warehouseDirectory: ""
+  workloadIdentity:
+    enabled: true
+    gcpServiceAccount: ""
+  serviceAccountKeyFile: ""  # Only used if workloadIdentity.enabled is false
+
 aws:
   # -- AWS Pod execution IAM role.
   podIamRole:
@@ -107,11 +120,12 @@ exposure:
 # Configuration for the Docker image to use.
 image:
   # -- Image pullSecrets for private registries.
-  pullSecrets: []
+  pullSecrets:
+  - name: data
   # -- Docker image registry.
   repository: quay.io/okdp/hive-metastore
   # -- Image tag.
-  tag: 3.1.3-1.2.0
+  tag: latest
   # -- Image pull policy.
   pullPolicy: IfNotPresent
 
@@ -126,7 +140,6 @@ serviceAccount:
 # -- Security profile for the hive-metastore pod.
 podSecurityContext:
   runAsNonRoot: true
-  runAsUser: 996
   seccompProfile:
     type: RuntimeDefault
 
