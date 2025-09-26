@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jre-noble
+FROM eclipse-temurin:25-jre-noble
 
 ARG ARG_HADOOP_VERSION=3.3.6
 ARG ARG_METASTORE_VERSION=3.1.3
