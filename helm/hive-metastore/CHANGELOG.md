@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.1.3-1.3.0](https://github.com/OKDP/hive-metastore/compare/helm-hive-metastore/v3.1.3-1.2.0...helm-hive-metastore/v3.1.3-1.3.0) (2025-10-07)
+
+
+### chore
+
+* release 3.1.3-1.2.0 ([6619d81](https://github.com/OKDP/hive-metastore/commit/6619d81a6d65a2f8f04123b59e95da98b9b4e9e7))
+* release 3.1.3-1.3.0 ([06d4733](https://github.com/OKDP/hive-metastore/commit/06d4733cb06a4390d17cccf28c31f8e2b7567b9c))
+
+
+### Features
+
+* Hive metastore base image upgrade to noble ([#48](https://github.com/OKDP/hive-metastore/issues/48)) ([431c9aa](https://github.com/OKDP/hive-metastore/commit/431c9aa8f466c110446df82243da9cd5ed8ed195))
+
 ## [3.1.3-1.2.0](https://github.com/OKDP/hive-metastore/compare/helm-hive-metastore/v3.1.3-1.1.0...helm-hive-metastore/v3.1.3-1.2.0) (2025-06-11)
 
 
