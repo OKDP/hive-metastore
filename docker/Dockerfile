@@ -133,9 +133,9 @@ RUN sed -i '/<\/configuration>/i \
   </property>' \
   ${HADOOP_HOME}/etc/hadoop/core-site.xml
 
-COPY /config.yaml /opt/prometheus
+COPY docker/config.yaml /opt/prometheus
 
-COPY /metastore.sh /metastore.sh
+COPY docker/metastore.sh /metastore.sh
 
 RUN groupadd -r hive --gid=996 && \
     useradd -r -g hive --uid=996 -d ${HIVE_HOME} hive && \
@@ -144,7 +144,7 @@ RUN groupadd -r hive --gid=996 && \
     chown hive:hive /metastore.sh && chmod +x /metastore.sh
 
 # Security breach, but must be in a namespace with relaxed psp to be able to sudo
-COPY /hive.sudoer /etc/sudoers.d/hive
+COPY docker/hive.sudoer /etc/sudoers.d/hive
 
 USER 996
 
