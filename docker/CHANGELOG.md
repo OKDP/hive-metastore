@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.1.3-1.3.0](https://github.com/OKDP/hive-metastore/compare/v3.1.3-1.2.0...v3.1.3-1.3.0) (2025-10-07)
+
+
+### chore
+
+* release 3.1.3-1.3.0 ([06d4733](https://github.com/OKDP/hive-metastore/commit/06d4733cb06a4390d17cccf28c31f8e2b7567b9c))
+
+
+### Features
+
+* Hive metastore base image upgrade to noble ([#48](https://github.com/OKDP/hive-metastore/issues/48)) ([431c9aa](https://github.com/OKDP/hive-metastore/commit/431c9aa8f466c110446df82243da9cd5ed8ed195))
+
 ## [3.1.3-1.2.0](https://github.com/OKDP/hive-metastore/compare/v3.1.3-1.2.0...v3.1.3-1.2.0) (2025-06-11)
 
 
