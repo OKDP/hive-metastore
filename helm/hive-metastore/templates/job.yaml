@@ -50,21 +50,48 @@ spec:
               value: "{{ .Values.db.port | default "5432" }}"
             - name: HIVEMS_DB
               value: {{ .Values.db.databaseName }}
+            {{- if .Values.db.user.name }}
             - name: HIVEMS_USER
-              value: {{ .Values.db.user.name }}
+              value: {{ .Values.db.user.name | quote }}
+            {{- end }}
             - name: HIVEMS_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.db.user.password.secretName }}
                   key: {{ .Values.db.user.password.propertyName }}
+            {{- if .Values.extraEnvRaw }}
+              {{- toYaml .Values.extraEnvRaw | nindent 12 }}
+            {{- end }}
           command: ["/bin/sh","-c"]
           args:
             - |
-              TABLE_EXISTS=$(mysql -h $DB_HOST -u$HIVEMS_USER -p$HIVEMS_PASSWORD -D $HIVEMS_DB -sN -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '${HIVEMS_DB}' AND table_name = 'METASTORE_DB_PROPERTIES';")
-              echo "TABLE_EXISTS: $TABLE_EXISTS"
-              if [ "$TABLE_EXISTS" != "" ] && [ "$TABLE_EXISTS" -eq 0 ]; then
-                /metastore.sh init
-              fi
+              set -e
+              echo "Using driver: {{ .Values.db.driverName }}"
+              {{- if eq .Values.db.driverName "mysql" }}
+                echo "MySQL — running initialization check..."
+                TABLE_EXISTS=$(mysql -h $DB_HOST -u$HIVEMS_USER -p$HIVEMS_PASSWORD -D $HIVEMS_DB -sN -e \
+                  "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '${HIVEMS_DB}' AND table_name = 'METASTORE_DB_PROPERTIES';")
+                if [ -n "$TABLE_EXISTS" ] && [ "$TABLE_EXISTS" -eq 0 ]; then
+                  echo "Initializing Hive Metastore schema for MySQL..."
+                  /metastore.sh init
+                else
+                  echo "Hive Metastore schema already exists, skipping initialization."
+                fi
+              {{- else if eq .Values.db.driverName "postgresql" }}
+                echo "PostgreSQL — running initialization check..."
+                TABLE_EXISTS=$(PGPASSWORD=$HIVEMS_PASSWORD psql -h $DB_HOST -U $HIVEMS_USER -d $HIVEMS_DB -tAc \
+                  "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'metastore_db_properties';")
+                if [ -n "$TABLE_EXISTS" ] && [ "$TABLE_EXISTS" -eq 0 ]; then
+                  echo "Initializing Hive Metastore schema for PostgreSQL..."
+                  /metastore.sh init
+                else
+                  echo "Hive Metastore schema already exists, skipping initialization."
+                fi
+              {{- else }}
+                echo "❌ Unsupported database driver: {{ .Values.db.driverName }}"
+                echo "Supported drivers are: mysql, postgres"
+                exit 1
+              {{- end }}
       restartPolicy: Never
       {{- with .Values.podSecurityContext }}
       securityContext:
