@@ -2,7 +2,7 @@
 db:
   # -- Hive metastore driver reference.
   driverRef: org.postgresql.Driver
-  # -- Hive metastore driver name.
+  # -- Hive metastore driver name.  One of `` `postgresql` or `mysql`
   driverName: postgresql
   # -- Hive metastore database host.
   host:
@@ -60,6 +60,15 @@ aws:
   podIamRole:
   # -- S3 IAM role ARN for hive-metastore access to S3.
   s3AssumeRoleArn:
+
+# -- Extra environment variables in RAW format that will be passed into pods
+extraEnvRaw: []
+# Load DB username from other secret
+# - name: HIVEMS_USER
+#   valueFrom:
+#     secretKeyRef:
+#       name: my-database-secret
+#       key: username
 
 # As the metastore does not provide authentication/authorization mechanism,
 # everybody will be able to access and modify all metastore data.

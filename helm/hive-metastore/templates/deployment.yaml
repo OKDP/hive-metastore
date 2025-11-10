@@ -118,13 +118,18 @@ spec:
               value: "{{ .Values.db.port | default "5432" }}"
             - name: HIVEMS_DB
               value: {{ .Values.db.databaseName }}
+            {{- if .Values.db.user.name }}
             - name: HIVEMS_USER
-              value: {{ .Values.db.user.name }}
+              value: {{ .Values.db.user.name | quote }}
+            {{- end }}
             - name: HIVEMS_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.db.user.password.secretName }}
                   key: {{ .Values.db.user.password.propertyName }}
+            {{- if .Values.extraEnvRaw }}
+              {{- toYaml .Values.extraEnvRaw | nindent 12 }}
+            {{- end }}
           {{- if and (eq .Values.cloud_storage "gcs") (eq .Values.gcs.workloadIdentity.enabled false) }}
           volumeMounts:
             - name: gcs-key

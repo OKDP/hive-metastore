@@ -293,7 +293,7 @@ if [ "$MODE" = "init" ]; then
         if [ $? -ne 0 ]; then echo "Will initialize the DB"; ${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/bin/schematool -initSchema -dbType ${DB_DRIVER_NAME} -userName ${HIVEMS_USER} -passWord ${HIVEMS_PASSWORD} -url "jdbc:mysql://${DB_HOST}:${DB_PORT}/${HIVEMS_DB}?createDatabaseIfNotExist=true&connectTimeout=1000"; fi
     else
         psql --host=${DB_HOST} --port=${DB_PORT} -U ${HIVEMS_USER} -d ${HIVEMS_DB} -c 'SELECT "DB_ID" FROM "DBS"' >/dev/null 2>&1;
-        if [ $? -ne 0 ]; then echo "Will initialize the DB"; ${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/bin/schematool -initSchema -dbType ${DB_DRIVER_NAME}; fi
+        if [ $? -ne 0 ]; then echo "Will initialize the DB"; ${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/bin/schematool -initSchema -dbType postgres; fi
     fi
     echo "DATABASE SCHEMA SHOULD BE OK NOW!!"
     exit 0
