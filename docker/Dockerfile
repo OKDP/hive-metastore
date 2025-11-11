@@ -88,51 +88,37 @@ RUN curl -sLO https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_ja
 
 # Download and install GCS connector and Google Cloud Storage dependencies
 RUN mkdir -p ${HIVE_HOME}/lib/ && \
-
     curl -sLO "https://repo1.maven.org/maven2/com/google/cloud/bigdataoss/gcs-connector/${GCS_CONNECTOR_VERSION}/gcs-connector-${GCS_CONNECTOR_VERSION}-sources.jar" && \ 
     mv gcs-connector-${GCS_CONNECTOR_VERSION}-sources.jar ${HIVE_HOME}/lib/ && \
-
     curl -sLO "https://repo1.maven.org/maven2/com/google/cloud/google-cloud-storage/${GOOGLE_CLOUD_STORAGE_VERSION}/google-cloud-storage-${GOOGLE_CLOUD_STORAGE_VERSION}.jar" && \
     mv google-cloud-storage-${GOOGLE_CLOUD_STORAGE_VERSION}.jar ${HIVE_HOME}/lib/ && \
-
     curl -sLO "https://repo1.maven.org/maven2/com/google/auth/google-auth-library-oauth2-http/${GOOGLE_AUTH_LIBRARY_VERSION}/google-auth-library-oauth2-http-${GOOGLE_AUTH_LIBRARY_VERSION}.jar" && \
     mv google-auth-library-oauth2-http-${GOOGLE_AUTH_LIBRARY_VERSION}.jar ${HIVE_HOME}/lib/ && \
-
     curl -sLO "https://repo1.maven.org/maven2/com/google/http-client/google-http-client-jackson2/${GOOGLE_HTTP_CLIENT_VERSION}/google-http-client-jackson2-${GOOGLE_HTTP_CLIENT_VERSION}.jar" && \
     mv google-http-client-jackson2-${GOOGLE_HTTP_CLIENT_VERSION}.jar ${HIVE_HOME}/lib/ && \
-
     curl -sLO "https://storage.googleapis.com/hadoop-lib/gcs/gcs-connector-latest-hadoop3.jar" && \
     mv gcs-connector-latest-hadoop3.jar ${HIVE_HOME}/lib/ && \
-    
     chmod 644 ${HIVE_HOME}/lib/*.jar && \
-
     export GCS_CONNECTOR_JAR_HIVE="${HIVE_HOME}/lib/gcs-connector-${GCS_CONNECTOR_VERSION}-sources.jar" && \
-    export GCS_CONNECTOR_JAR_HADOOP="${HADOOP_HOME}/share/hadoop/common/lib/gcs-connector-${GCS_CONNECTOR_VERSION}-sources.jar" &&\
-
+    export GCS_CONNECTOR_JAR_HADOOP="${HADOOP_HOME}/share/hadoop/common/lib/gcs-connector-${GCS_CONNECTOR_VERSION}-sources.jar" && \
     export GCS_CLIENT_HTTP_JAR_HIVE="${HIVE_HOME}/lib/google-http-client-jackson2-${GOOGLE_HTTP_CLIENT_VERSION}.jar" && \
-    export GCS_CLIENT_HTTP_JAR_HADOOP="${HADOOP_HOME}/share/hadoop/common/lib/google-http-client-jackson2-${GOOGLE_HTTP_CLIENT_VERSION}.jar" &&\
-
+    export GCS_CLIENT_HTTP_JAR_HADOOP="${HADOOP_HOME}/share/hadoop/common/lib/google-http-client-jackson2-${GOOGLE_HTTP_CLIENT_VERSION}.jar" && \
     export GCS_CLOUD_STORAGE_JAR_HIVE="${HIVE_HOME}/lib/google-cloud-storage-${GOOGLE_CLOUD_STORAGE_VERSION}.jar" && \
-    export GCS_CLOUD_STORAGE_JAR_HADOOP="${HADOOP_HOME}/share/hadoop/common/lib/google-cloud-storage-${GOOGLE_CLOUD_STORAGE_VERSION}.jar" &&\
-
+    export GCS_CLOUD_STORAGE_JAR_HADOOP="${HADOOP_HOME}/share/hadoop/common/lib/google-cloud-storage-${GOOGLE_CLOUD_STORAGE_VERSION}.jar" && \
     export GCS_OAUTH_JAR_HIVE="${HIVE_HOME}/lib/google-auth-library-oauth2-http-${GOOGLE_AUTH_LIBRARY_VERSION}.jar" && \
-    export GCS_OAUTH_JAR_HADOOP="${HADOOP_HOME}/share/hadoop/common/lib/google-auth-library-oauth2-http-${GOOGLE_AUTH_LIBRARY_VERSION}.jar" &&\
-
+    export GCS_OAUTH_JAR_HADOOP="${HADOOP_HOME}/share/hadoop/common/lib/google-auth-library-oauth2-http-${GOOGLE_AUTH_LIBRARY_VERSION}.jar" && \
     export GCS_HADOOP_CONNECTOR_JAR_HIVE="${HIVE_HOME}/lib/gcs-connector-latest-hadoop3.jar" && \
-    export GCS_HADOOP_CONNECTOR_JAR_HADOOP="${HADOOP_HOME}/share/hadoop/common/lib/gcs-connector-latest-hadoop3.jar" &&\
-
-    cp "${GCS_CONNECTOR_JAR_HIVE}" "${GCS_CONNECTOR_JAR_HADOOP}" &&\
-    cp "${GCS_CLIENT_HTTP_JAR_HIVE}" "${GCS_CLIENT_HTTP_JAR_HADOOP}" &&\
-    cp "${GCS_CLOUD_STORAGE_JAR_HIVE}" "${GCS_CLOUD_STORAGE_JAR_HADOOP}" &&\
-    cp "${GCS_OAUTH_JAR_HIVE}" "${GCS_OAUTH_JAR_HADOOP}" &&\
-    cp "${GCS_HADOOP_CONNECTOR_JAR_HIVE}" "${GCS_HADOOP_CONNECTOR_JAR_HADOOP}" &&\
-
-    chown ubuntu:ubuntu "${GCS_CONNECTOR_JAR_HADOOP}" &&\
-    chown ubuntu:ubuntu "${GCS_CLIENT_HTTP_JAR_HADOOP}" &&\
-    chown ubuntu:ubuntu "${GCS_CLOUD_STORAGE_JAR_HADOOP}" &&\
-    chown ubuntu:ubuntu "${GCS_OAUTH_JAR_HADOOP}" &&\
-    chown ubuntu:ubuntu "${GCS_HADOOP_CONNECTOR_JAR_HADOOP}" &&\
-
+    export GCS_HADOOP_CONNECTOR_JAR_HADOOP="${HADOOP_HOME}/share/hadoop/common/lib/gcs-connector-latest-hadoop3.jar" && \
+    cp "${GCS_CONNECTOR_JAR_HIVE}" "${GCS_CONNECTOR_JAR_HADOOP}" && \
+    cp "${GCS_CLIENT_HTTP_JAR_HIVE}" "${GCS_CLIENT_HTTP_JAR_HADOOP}" && \
+    cp "${GCS_CLOUD_STORAGE_JAR_HIVE}" "${GCS_CLOUD_STORAGE_JAR_HADOOP}" && \
+    cp "${GCS_OAUTH_JAR_HIVE}" "${GCS_OAUTH_JAR_HADOOP}" && \
+    cp "${GCS_HADOOP_CONNECTOR_JAR_HIVE}" "${GCS_HADOOP_CONNECTOR_JAR_HADOOP}" && \
+    chown ubuntu:ubuntu "${GCS_CONNECTOR_JAR_HADOOP}" && \
+    chown ubuntu:ubuntu "${GCS_CLIENT_HTTP_JAR_HADOOP}" && \
+    chown ubuntu:ubuntu "${GCS_CLOUD_STORAGE_JAR_HADOOP}" && \
+    chown ubuntu:ubuntu "${GCS_OAUTH_JAR_HADOOP}" && \
+    chown ubuntu:ubuntu "${GCS_HADOOP_CONNECTOR_JAR_HADOOP}" && \
     export GCS_CONNECTOR_JAR="${GCS_CONNECTOR_JAR_HADOOP}"
 
 # Ensure GCS connector is in the classpath
