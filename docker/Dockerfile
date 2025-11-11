@@ -34,7 +34,8 @@ RUN apt-get update && \
     sudo \
     curl \
     mysql-client=${MYSQL_CLIENT_VERSION} && \
-    apt-get clean -y
+    apt-get clean -y && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives
 
 WORKDIR /opt
 
@@ -45,8 +46,24 @@ RUN if echo $METASTORE_VERSION | grep -E '^3\.' > /dev/null; then \
     fi
 
 # download and install hadoop and fix the (>= ubuntu jammy) distribution executable bug
-RUN curl -L https://dlcdn.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz | tar zxf - && \
-    sed -i 's|if \[\[ ! -x "\$JAVA" \]\]; then|if [ \$("$JAVA" -version) ]; then|' ${HADOOP_HOME}/libexec/hadoop-functions.sh
+RUN set -eux; \
+    curl -L https://dlcdn.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz | tar zxf - && \
+    sed -i 's|if \[\[ ! -x "\$JAVA" \]\]; then|if [ \$("$JAVA" -version) ]; then|' ${HADOOP_HOME}/libexec/hadoop-functions.sh && \
+    echo "Cleaning up unnecessary Hadoop components for Hive Metastore..." && \
+    rm -rf ${HADOOP_HOME}/share/hadoop/yarn/* && \
+    rm -rf ${HADOOP_HOME}/share/hadoop/mapreduce/* && \
+    rm -rf ${HADOOP_HOME}/share/hadoop/client/* && \
+    find ${HADOOP_HOME}/share/hadoop -type d \( \
+        -name "jdiff" -o \
+        -name "test" -o \
+        -name "examples" \
+    \) -exec rm -rf {} + && \
+    rm -rf ${HADOOP_HOME}/share/doc && \
+    rm -rf ${HADOOP_HOME}/share/hadoop/hdfs/webapps && \
+    find ${HADOOP_HOME}/share/hadoop -type d -name "webapps" -exec rm -rf {} + && \
+    echo "Verify what remains" && \
+    du -sh ${HADOOP_HOME}/share/hadoop/* || true && \
+    echo "Hadoop cleanup completed."
 
 RUN rm -f ${HIVE_HOME}/lib/postgresql-*.jar && \ 
     curl -sL https://jdbc.postgresql.org/download/postgresql-${JDBC_VERSION}.jar -o /opt/apache-hive-metastore-${METASTORE_VERSION}-bin/lib/postgresql-${JDBC_VERSION}.jar
