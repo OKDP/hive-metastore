@@ -121,8 +121,10 @@ RUN mkdir -p ${HIVE_HOME}/lib/ && \
     chown ubuntu:ubuntu "${GCS_HADOOP_CONNECTOR_JAR_HADOOP}" && \
     export GCS_CONNECTOR_JAR="${GCS_CONNECTOR_JAR_HADOOP}"
 
-# Ensure GCS connector is in the classpath
+# Ensure both GCS and AWS connectors are on the Hadoop classpath
 RUN echo "export HADOOP_CLASSPATH=\${HADOOP_CLASSPATH}:${HADOOP_HOME}/share/hadoop/common/lib/gcs-connector-${GCS_CONNECTOR_VERSION}-sources.jar" \
+    >> ${HADOOP_HOME}/etc/hadoop/hadoop-env.sh && \
+    echo "export HADOOP_CLASSPATH=\${HADOOP_CLASSPATH}:${HADOOP_HOME}/share/hadoop/tools/lib/aws-java-sdk-bundle-*.jar:${HADOOP_HOME}/share/hadoop/tools/lib/hadoop-aws-${HADOOP_VERSION}.jar" \
     >> ${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
 
 RUN sed -i '/<\/configuration>/i \
