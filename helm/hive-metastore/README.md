@@ -35,13 +35,13 @@ This chart bootstraps a [Hive Metastore](https://cwiki.apache.org/confluence/dis
 To install the chart with the release name `my-release`:
 
 ```shell
-$ helm install my-release oci://quay.io/okdp/charts/hive-metastore --version 3.1.3-1.3.0
+$ helm install my-release oci://quay.io/okdp/charts/hive-metastore --version 3.1.3-1.3.1
 ```
 
 This will create a release of `my-release` in the default namespace. To install in a different namespace:
 
 ```shell
-$ helm install my-release oci://quay.io/okdp/charts/hive-metastore --version 3.1.3-1.3.0 \
+$ helm install my-release oci://quay.io/okdp/charts/hive-metastore --version 3.1.3-1.3.1 \
        --namespace hive-metastore
 ```
 
@@ -62,7 +62,7 @@ The command removes all the Kubernetes components associated with the chart and 
 To download the chart locally, use the following command:
 
 ```shell
-$ helm pull oci://quay.io/okdp/charts/hive-metastore --version 3.1.3-1.3.0
+$ helm pull oci://quay.io/okdp/charts/hive-metastore --version 3.1.3-1.3.1
 ```
 
 ## Values
@@ -76,7 +76,7 @@ $ helm pull oci://quay.io/okdp/charts/hive-metastore --version 3.1.3-1.3.0
 	</thead>
 	<tbody>
 		<tr>
-			<td id="affinity"><a href="./values.yaml#L158">affinity</a></td>
+			<td id="affinity"><a href="./values.yaml#L167">affinity</a></td>
 			<td>
 object
 </td>
@@ -88,7 +88,7 @@ object
 			<td>Affinity for the hive-metastore pod.</td>
 		</tr>
 		<tr>
-			<td id="autoscaling"><a href="./values.yaml#L85">autoscaling</a></td>
+			<td id="autoscaling"><a href="./values.yaml#L94">autoscaling</a></td>
 			<td>
 object
 </td>
@@ -142,7 +142,7 @@ string
 			<td></td>
 		</tr>
 		<tr>
-			<td id="commonAnnotations"><a href="./values.yaml#L167">commonAnnotations</a></td>
+			<td id="commonAnnotations"><a href="./values.yaml#L176">commonAnnotations</a></td>
 			<td>
 object
 </td>
@@ -154,7 +154,7 @@ object
 			<td>Annotations to be added to all resources.</td>
 		</tr>
 		<tr>
-			<td id="containerSecurityContext--allowPrivilegeEscalation"><a href="./values.yaml#L147">containerSecurityContext.allowPrivilegeEscalation</a></td>
+			<td id="containerSecurityContext--allowPrivilegeEscalation"><a href="./values.yaml#L156">containerSecurityContext.allowPrivilegeEscalation</a></td>
 			<td>
 bool
 </td>
@@ -166,7 +166,7 @@ false
 			<td></td>
 		</tr>
 		<tr>
-			<td id="containerSecurityContext--capabilities--drop[0]"><a href="./values.yaml#L151">containerSecurityContext.capabilities.drop[0]</a></td>
+			<td id="containerSecurityContext--capabilities--drop[0]"><a href="./values.yaml#L160">containerSecurityContext.capabilities.drop[0]</a></td>
 			<td>
 string
 </td>
@@ -178,7 +178,7 @@ string
 			<td></td>
 		</tr>
 		<tr>
-			<td id="containerSecurityContext--readOnlyRootFilesystem"><a href="./values.yaml#L148">containerSecurityContext.readOnlyRootFilesystem</a></td>
+			<td id="containerSecurityContext--readOnlyRootFilesystem"><a href="./values.yaml#L157">containerSecurityContext.readOnlyRootFilesystem</a></td>
 			<td>
 bool
 </td>
@@ -211,7 +211,7 @@ string
 "postgresql"
 </pre>
 </div></td>
-			<td>Hive metastore driver name.</td>
+			<td>Hive metastore driver name.  One of `` `postgresql` or `mysql`</td>
 		</tr>
 		<tr>
 			<td id="db--driverRef"><a href="./values.yaml#L4">db.driverRef</a></td>
@@ -286,7 +286,7 @@ null
 			<td>Hive metastore database existing kubernetes secret name.</td>
 		</tr>
 		<tr>
-			<td id="deploymentName"><a href="./values.yaml#L177">deploymentName</a></td>
+			<td id="deploymentName"><a href="./values.yaml#L186">deploymentName</a></td>
 			<td>
 string
 </td>
@@ -298,7 +298,7 @@ null
 			<td>Will default to {{ include "metastore.fullname" . }}</td>
 		</tr>
 		<tr>
-			<td id="exposure"><a href="./values.yaml#L109">exposure</a></td>
+			<td id="exposure"><a href="./values.yaml#L118">exposure</a></td>
 			<td>
 object
 </td>
@@ -330,7 +330,19 @@ object
 </td>
 		</tr>
 		<tr>
-			<td id="fullNameOverride"><a href="./values.yaml#L175">fullNameOverride</a></td>
+			<td id="extraEnvRaw"><a href="./values.yaml#L65">extraEnvRaw</a></td>
+			<td>
+list
+</td>
+			<td><div style="max-width: 300px;">
+<pre lang="json">
+[]
+</pre>
+</div></td>
+			<td>Extra environment variables in RAW format that will be passed into pods</td>
+		</tr>
+		<tr>
+			<td id="fullNameOverride"><a href="./values.yaml#L184">fullNameOverride</a></td>
 			<td>
 string
 </td>
@@ -414,7 +426,7 @@ string
 			<td></td>
 		</tr>
 		<tr>
-			<td id="hpaName"><a href="./values.yaml#L185">hpaName</a></td>
+			<td id="hpaName"><a href="./values.yaml#L194">hpaName</a></td>
 			<td>
 string
 </td>
@@ -426,7 +438,7 @@ null
 			<td>Will default to {{ include "metastore.fullname" . }}</td>
 		</tr>
 		<tr>
-			<td id="image--pullPolicy"><a href="./values.yaml#L130">image.pullPolicy</a></td>
+			<td id="image--pullPolicy"><a href="./values.yaml#L139">image.pullPolicy</a></td>
 			<td>
 string
 </td>
@@ -438,7 +450,7 @@ string
 			<td>Image pull policy.</td>
 		</tr>
 		<tr>
-			<td id="image--pullSecrets"><a href="./values.yaml#L123">image.pullSecrets</a></td>
+			<td id="image--pullSecrets"><a href="./values.yaml#L132">image.pullSecrets</a></td>
 			<td>
 list
 </td>
@@ -454,7 +466,7 @@ list
 			<td>Image pullSecrets for private registries.</td>
 		</tr>
 		<tr>
-			<td id="image--repository"><a href="./values.yaml#L126">image.repository</a></td>
+			<td id="image--repository"><a href="./values.yaml#L135">image.repository</a></td>
 			<td>
 string
 </td>
@@ -466,7 +478,7 @@ string
 			<td>Docker image registry.</td>
 		</tr>
 		<tr>
-			<td id="image--tag"><a href="./values.yaml#L128">image.tag</a></td>
+			<td id="image--tag"><a href="./values.yaml#L137">image.tag</a></td>
 			<td>
 string
 </td>
@@ -478,7 +490,7 @@ string
 			<td>Image tag.</td>
 		</tr>
 		<tr>
-			<td id="initJob"><a href="./values.yaml#L96">initJob</a></td>
+			<td id="initJob"><a href="./values.yaml#L105">initJob</a></td>
 			<td>
 object
 </td>
@@ -492,7 +504,7 @@ object
 			<td>Hive metastore database initialization job</td>
 		</tr>
 		<tr>
-			<td id="jobName"><a href="./values.yaml#L179">jobName</a></td>
+			<td id="jobName"><a href="./values.yaml#L188">jobName</a></td>
 			<td>
 string
 </td>
@@ -504,7 +516,7 @@ null
 			<td>Will default to {{ include "metastore.fullname" . }}</td>
 		</tr>
 		<tr>
-			<td id="logLevel"><a href="./values.yaml#L93">logLevel</a></td>
+			<td id="logLevel"><a href="./values.yaml#L102">logLevel</a></td>
 			<td>
 string
 </td>
@@ -516,7 +528,7 @@ string
 			<td>Log4j2 log level. One of `` `debug`, `info`, `warn`, `error`, `fatal`, `trace`</td>
 		</tr>
 		<tr>
-			<td id="nameOverride"><a href="./values.yaml#L173">nameOverride</a></td>
+			<td id="nameOverride"><a href="./values.yaml#L182">nameOverride</a></td>
 			<td>
 string
 </td>
@@ -528,7 +540,7 @@ null
 			<td>Allow chart name overriding.</td>
 		</tr>
 		<tr>
-			<td id="networkPolicies--allowedNamespace"><a href="./values.yaml#L70">networkPolicies.allowedNamespace</a></td>
+			<td id="networkPolicies--allowedNamespace"><a href="./values.yaml#L79">networkPolicies.allowedNamespace</a></td>
 			<td>
 list
 </td>
@@ -540,7 +552,7 @@ list
 			<td></td>
 		</tr>
 		<tr>
-			<td id="networkPolicies--allowedNamespaceLabels"><a href="./values.yaml#L69">networkPolicies.allowedNamespaceLabels</a></td>
+			<td id="networkPolicies--allowedNamespaceLabels"><a href="./values.yaml#L78">networkPolicies.allowedNamespaceLabels</a></td>
 			<td>
 object
 </td>
@@ -552,7 +564,7 @@ object
 			<td></td>
 		</tr>
 		<tr>
-			<td id="networkPolicies--enabled"><a href="./values.yaml#L68">networkPolicies.enabled</a></td>
+			<td id="networkPolicies--enabled"><a href="./values.yaml#L77">networkPolicies.enabled</a></td>
 			<td>
 bool
 </td>
@@ -564,7 +576,7 @@ true
 			<td></td>
 		</tr>
 		<tr>
-			<td id="networkPolicyName"><a href="./values.yaml#L183">networkPolicyName</a></td>
+			<td id="networkPolicyName"><a href="./values.yaml#L192">networkPolicyName</a></td>
 			<td>
 string
 </td>
@@ -576,7 +588,7 @@ null
 			<td>Will default to {{ include "metastore.fullname" . }}</td>
 		</tr>
 		<tr>
-			<td id="nodeSelector"><a href="./values.yaml#L154">nodeSelector</a></td>
+			<td id="nodeSelector"><a href="./values.yaml#L163">nodeSelector</a></td>
 			<td>
 object
 </td>
@@ -588,7 +600,7 @@ object
 			<td>Node selector for the hive-metastore pod.</td>
 		</tr>
 		<tr>
-			<td id="podAnnotations"><a href="./values.yaml#L164">podAnnotations</a></td>
+			<td id="podAnnotations"><a href="./values.yaml#L173">podAnnotations</a></td>
 			<td>
 object
 </td>
@@ -600,7 +612,7 @@ object
 			<td>Annotations to be added to the pod.</td>
 		</tr>
 		<tr>
-			<td id="podSecurityContext"><a href="./values.yaml#L141">podSecurityContext</a></td>
+			<td id="podSecurityContext"><a href="./values.yaml#L150">podSecurityContext</a></td>
 			<td>
 object
 </td>
@@ -617,7 +629,7 @@ object
 			<td>Security profile for the hive-metastore pod.</td>
 		</tr>
 		<tr>
-			<td id="replicaCount"><a href="./values.yaml#L73">replicaCount</a></td>
+			<td id="replicaCount"><a href="./values.yaml#L82">replicaCount</a></td>
 			<td>
 int
 </td>
@@ -629,7 +641,7 @@ int
 			<td>Desired number of hive-metastore pods to run. Set 'replicaCount' to 0 or leave it unused when autoscaling is enabled.</td>
 		</tr>
 		<tr>
-			<td id="resources"><a href="./values.yaml#L76">resources</a></td>
+			<td id="resources"><a href="./values.yaml#L85">resources</a></td>
 			<td>
 object
 </td>
@@ -749,7 +761,7 @@ null
 			<td>S3 warehouse directory/bucket name.</td>
 		</tr>
 		<tr>
-			<td id="serviceAccount"><a href="./values.yaml#L133">serviceAccount</a></td>
+			<td id="serviceAccount"><a href="./values.yaml#L142">serviceAccount</a></td>
 			<td>
 object
 </td>
@@ -765,7 +777,7 @@ object
 			<td>Specifies whether a service account should be created.</td>
 		</tr>
 		<tr>
-			<td id="serviceName"><a href="./values.yaml#L181">serviceName</a></td>
+			<td id="serviceName"><a href="./values.yaml#L190">serviceName</a></td>
 			<td>
 string
 </td>
@@ -777,7 +789,7 @@ null
 			<td>Will default to {{ include "metastore.fullname" . }}</td>
 		</tr>
 		<tr>
-			<td id="servicePort"><a href="./values.yaml#L161">servicePort</a></td>
+			<td id="servicePort"><a href="./values.yaml#L170">servicePort</a></td>
 			<td>
 int
 </td>
@@ -789,7 +801,7 @@ int
 			<td>Hive metastore service port.</td>
 		</tr>
 		<tr>
-			<td id="tolerations"><a href="./values.yaml#L156">tolerations</a></td>
+			<td id="tolerations"><a href="./values.yaml#L165">tolerations</a></td>
 			<td>
 list
 </td>
