@@ -95,3 +95,16 @@ Create the name of the service account
 {{- define "metastore.serviceAccount" -}}
 {{- default (printf "%s" (include "metastore.fullname" .)) .Values.serviceAccount.name }}
 {{- end }}
+
+{{/*
+ Override db.user.name by HIVEMS_USER if it exists in extraEnvRaw
+*/}}
+{{- define "metastore.hasHiveMsUserEnv" -}}
+{{- $found := false }}
+{{- range .Values.extraEnvRaw }}
+  {{- if and (hasKey . "name") (eq .name "HIVEMS_USER") }}
+    {{- $found = true }}
+  {{- end }}
+{{- end }}
+{{- $found }}
+{{- end }}

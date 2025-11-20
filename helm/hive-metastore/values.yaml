@@ -69,6 +69,126 @@ extraEnvRaw: []
 #     secretKeyRef:
 #       name: my-database-secret
 #       key: username
+# Set env variable
+# - name: MY_ENV_VAR_1
+#   value: MY_VALUE_1
+
+# -- Configuration overrides, with env variables support, that will be passed into pods on /etc/hadoop/conf and /etc/hive/conf.
+configOverrides: {}
+#  Example:
+#  core-site.xml:
+#    mountPath: /etc/hadoop/conf/core-site.xml
+#    stringData: |
+#      <?xml version="1.0" encoding="UTF-8"?>
+#      <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+#      <configuration>
+#        <property>
+#          <name>fs.gs.impl</name>
+#          <value>com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem</value>
+#        </property>
+#        <property>
+#          <name>fs.AbstractFileSystem.gs.impl</name>
+#          <value>com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS</value>
+#        </property>
+#      </configuration>
+#
+#  metastore-site.xml:
+#    mountPath: /etc/hive/conf/metastore-site.xml
+#    stringData: |
+#      <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+#      <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+#      <configuration>
+#        <property>
+#          <name>metastore.thrift.uris</name>
+#          <value>thrift://localhost:9083</value>
+#          <description>Thrift URI for the remote metastore. Used by metastore client to connect to remote metastore.</description>
+#        </property>
+#        <property>
+#          <name>metastore.task.threads.always</name>
+#          <value>org.apache.hadoop.hive.metastore.events.EventCleanerTask,org.apache.hadoop.hive.metastore.MaterializationsRebuildLockCleanerTask</value>
+#        </property>
+#        <property>
+#          <name>metastore.expression.proxy</name>
+#          <value>org.apache.hadoop.hive.metastore.DefaultPartitionExpressionProxy</value>
+#        </property>
+#        <property>
+#          <name>metastore.server.min.threads</name>
+#          <value>5</value>
+#        </property>
+#        <property>
+#          <name>metastore.server.max.threads</name>
+#          <value>20</value>
+#        </property>
+#        <property>
+#          <name>javax.jdo.option.Multithreaded</name>
+#          <value>true</value>
+#          <description>Set this to true if multiple threads access metastore through JDO concurrently.</description>
+#        </property>
+#        <property>
+#          <name>javax.jdo.PersistenceManagerFactoryClass</name>
+#          <value>org.datanucleus.api.jdo.JDOPersistenceManagerFactory</value>
+#          <description>class implementing the jdo persistence</description>
+#        </property>
+#        <property>
+#          <name>javax.jdo.option.ConnectionDriverName</name>
+#          <value>${DB_DRIVER_REF}</value>
+#        </property>
+#        <property>
+#          <name>javax.jdo.option.ConnectionURL</name>
+#          <value>jdbc:${DB_DRIVER_NAME}://${DB_HOST}:${DB_PORT}/${HIVEMS_DB}</value>
+#        </property>
+#        <property>
+#          <name>javax.jdo.option.ConnectionUserName</name>
+#          <value>${HIVEMS_USER}</value>
+#        </property>
+#        <property>
+#          <name>javax.jdo.option.ConnectionPassword</name>
+#          <value>${HIVEMS_PASSWORD}</value>
+#        </property>
+#        <property>
+#          <name>fs.s3a.path.style.access</name>
+#          <value>true</value>
+#        </property>
+#        <property>
+#          <name>fs.s3a.connection.request.timeout</name>
+#          <value>${S3_REQUEST_TIMEOUT}</value>
+#        </property>
+#        <!-- GCS connector configuration -->
+#        <property>
+#          <name>fs.gs.impl</name>
+#          <value>com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem</value>
+#          <description>The FileSystem implementation for gs: URIs</description>
+#        </property>
+#      </configuration>
+#
+#  metastore-log4j2.properties:
+#    mountPath: /etc/hive/conf/metastore-log4j2.properties
+#    stringData: |
+#      status = INFO
+#      name = MetastoreLog4j2
+#      packages = org.apache.hadoop.hive.metastore
+#      # list of all appenders
+#      appenders = console
+#      # console appender
+#      appender.console.type = Console
+#      appender.console.name = console
+#      appender.console.target = SYSTEM_ERR
+#      appender.console.layout.type = PatternLayout
+#      appender.console.layout.pattern = %d{ISO8601} %5p [%t] %c{2}: %m%n
+#      # list of all loggers
+#      loggers = DataNucleus, Datastore, JPOX, PerfLogger
+#      logger.DataNucleus.name = DataNucleus
+#      logger.DataNucleus.level = ERROR
+#      logger.Datastore.name = Datastore
+#      logger.Datastore.level = ERROR
+#      logger.JPOX.name = JPOX
+#      logger.JPOX.level = ERROR
+#      logger.PerfLogger.name = org.apache.hadoop.hive.ql.log.PerfLogger
+#      logger.PerfLogger.level = INFO
+#      # root logger
+#      rootLogger.level = ${LOG_LEVEL}
+#      rootLogger.appenderRefs = root
+#      rootLogger.appenderRef.root.ref = console
 
 # As the metastore does not provide authentication/authorization mechanism,
 # everybody will be able to access and modify all metastore data.
@@ -104,6 +224,9 @@ logLevel: INFO
 # -- Hive metastore database initialization job
 initJob:
   ttlSecondsAfterFinished: 60
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": "before-hook-creation"
 
 # -- Allow the metastore to be reachable from outside of the cluster
 # @raw

@@ -3,20 +3,27 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name:  {{ include "metastore.jobName" . }}
-  namespace: {{ .Release.Namespace  }}
+  name: {{ include "metastore.jobName" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "metastore.labels" . | nindent 4 }}
-  {{- with .Values.commonAnnotations }}
+  {{- $common := .Values.commonAnnotations }}
+  {{- $jobAnn := .Values.initJob.annotations }}
+  {{- if or $common $jobAnn }}
   annotations:
+  {{- with $common }}
     {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with $jobAnn }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   {{- end }}
 spec:
   ttlSecondsAfterFinished: {{ .Values.initJob.ttlSecondsAfterFinished }}
   template:
     metadata:
       labels:
-      {{- include "metastore.labels" . | nindent 8 }}
+        {{- include "metastore.labels" . | nindent 8 }}
       {{- if .Values.aws.podIamRole }}
       annotations:
         iam.amazonaws.com/role: {{ .Values.aws.podIamRole }}
@@ -32,7 +39,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- with .Values.containerSecurityContext }}
           securityContext:
-          {{- toYaml . | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
@@ -50,7 +57,7 @@ spec:
               value: "{{ .Values.db.port | default "5432" }}"
             - name: HIVEMS_DB
               value: {{ .Values.db.databaseName }}
-            {{- if .Values.db.user.name }}
+            {{- if eq (include "metastore.hasHiveMsUserEnv" .) "false" }}
             - name: HIVEMS_USER
               value: {{ .Values.db.user.name | quote }}
             {{- end }}
@@ -59,41 +66,55 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.db.user.password.secretName }}
                   key: {{ .Values.db.user.password.propertyName }}
-            {{- if .Values.extraEnvRaw }}
-              {{- toYaml .Values.extraEnvRaw | nindent 12 }}
+            {{- with .Values.extraEnvRaw }}
+            {{- toYaml . | nindent 12 }}
             {{- end }}
-          command: ["/bin/sh","-c"]
+          command: ["/bin/sh", "-c"]
           args:
             - |
               set -e
               echo "Using driver: {{ .Values.db.driverName }}"
               {{- if eq .Values.db.driverName "mysql" }}
-                echo "MySQL — running initialization check..."
-                TABLE_EXISTS=$(mysql -h $DB_HOST -u$HIVEMS_USER -p$HIVEMS_PASSWORD -D $HIVEMS_DB -sN -e \
-                  "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '${HIVEMS_DB}' AND table_name = 'METASTORE_DB_PROPERTIES';")
-                if [ -n "$TABLE_EXISTS" ] && [ "$TABLE_EXISTS" -eq 0 ]; then
-                  echo "Initializing Hive Metastore schema for MySQL..."
-                  /metastore.sh init
-                else
-                  echo "Hive Metastore schema already exists, skipping initialization."
-                fi
+              echo "MySQL — running initialization check..."
+              TABLE_EXISTS=$(mysql -h $DB_HOST -u$HIVEMS_USER -p$HIVEMS_PASSWORD -D $HIVEMS_DB -sN -e \
+                "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '${HIVEMS_DB}' AND table_name = 'METASTORE_DB_PROPERTIES';")
+              if [ -n "$TABLE_EXISTS" ] && [ "$TABLE_EXISTS" -eq 0 ]; then
+                echo "Initializing Hive Metastore schema for MySQL..."
+                /metastore.sh init
+              else
+                echo "Hive Metastore schema already exists, skipping initialization."
+              fi
               {{- else if eq .Values.db.driverName "postgresql" }}
-                echo "PostgreSQL — running initialization check..."
-                TABLE_EXISTS=$(PGPASSWORD=$HIVEMS_PASSWORD psql -h $DB_HOST -U $HIVEMS_USER -d $HIVEMS_DB -tAc \
-                  "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'metastore_db_properties';")
-                if [ -n "$TABLE_EXISTS" ] && [ "$TABLE_EXISTS" -eq 0 ]; then
-                  echo "Initializing Hive Metastore schema for PostgreSQL..."
-                  /metastore.sh init
-                else
-                  echo "Hive Metastore schema already exists, skipping initialization."
-                fi
+              echo "PostgreSQL — running initialization check..."
+              TABLE_EXISTS=$(PGPASSWORD=$HIVEMS_PASSWORD psql -h $DB_HOST -U $HIVEMS_USER -d $HIVEMS_DB -tAc \
+                "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'metastore_db_properties';")
+              if [ -n "$TABLE_EXISTS" ] && [ "$TABLE_EXISTS" -eq 0 ]; then
+                echo "Initializing Hive Metastore schema for PostgreSQL..."
+                /metastore.sh init
+              else
+                echo "Hive Metastore schema already exists, skipping initialization."
+              fi
               {{- else }}
-                echo "❌ Unsupported database driver: {{ .Values.db.driverName }}"
-                echo "Supported drivers are: mysql, postgres"
-                exit 1
+              echo "❌ Unsupported database driver: {{ .Values.db.driverName }}"
+              echo "Supported drivers are: mysql, postgres"
+              exit 1
               {{- end }}
+          {{- with .Values.configOverrides }}
+          volumeMounts:
+            {{- range $filename, $file := . }}
+            - name: metastore-config
+              mountPath: /tmp/envsubst{{ $file.mountPath }}
+              subPath: {{ $filename }}
+            {{- end }}
+          {{- end }}
       restartPolicy: Never
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.configOverrides }}
+      volumes:
+        - name: metastore-config
+          configMap:
+            name: {{ include "metastore.fullname" . }}
       {{- end }}

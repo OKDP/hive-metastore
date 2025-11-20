@@ -19,26 +19,10 @@ if [ -z "${DB_DRIVER_REF}" ]; then echo "DB_DRIVER_REF env variable must be defi
 if [ -z "${DB_DRIVER_NAME}" ]; then echo "DB_DRIVER_NAME env variable must be defined!"; exit 1; fi
 if [ -z "${DB_HOST}" ]; then echo "DB_HOST env variable must be defined!"; exit 1; fi
 if [ -z "${DB_PORT}" ]; then echo "DB_PORT env variable must be defined!"; exit 1; fi
-if [ -z "${METASTORE_VERSION}" ]; then echo "METASTORE_VERSION env variable must be defined!"; exit 1; fi
-if [ -z "${HADOOP_VERSION}" ]; then echo "HADOOP_VERSION env variable must be defined!"; exit 1; fi
 
-# May be null in case of usage of AWS instance roles
-
-#if [ -z "${S3_ENDPOINT}" ]; then echo "S3_ENDPOINT env variable must be defined!"; exit 1; fi
-#if [ -z "${S3_ACCESS_KEY}" ]; then echo "S3_ACCESS_KEY env variable must be defined!"; exit 1; fi
-#if [ -z "${S3_SECRET_KEY}" ]; then echo "S3_SECRET_KEY env variable must be defined!"; exit 1; fi
-#if [ -z "${S3_WAREHOUSE_DIRECTORY}" ]; then echo "S3_WAREHOUSE_DIRECTORY env variable must be defined!"; exit 1; fi
-#if [ -z "${S3_PROXY_HOST}" ]; then echo "S3_PROXY_HOST env variable must be defined!"; exit 1; fi
-#if [ -z "${S3_PROXY_PORT}" ]; then echo "S3_PROXY_PORT env variable must be defined!"; exit 1; fi
-
-if [ -z "${JAVA_HOME}" ]; then export JAVA_HOME=/usr/local/openjdk-8; fi
-if [ -z "${BASEDIR}" ]; then export BASEDIR=/opt; fi
 if [ -z "${LOG_LEVEL}" ]; then export LOG_LEVEL=INFO; fi
 if [ -z "${THRIFT_LISTENING_PORT}" ]; then export THRIFT_LISTENING_PORT=9083; fi
 if [ -z "${S3_REQUEST_TIMEOUT}" ]; then export S3_REQUEST_TIMEOUT=0; fi
-
-export HADOOP_HOME=${BASEDIR}/hadoop-${HADOOP_VERSION}
-export HIVE_HOME=${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin
 
 # GCS connector JAR locations - require explicit version
 # if [ -z "${GCS_CONNECTOR_VERSION}" ]; then
@@ -49,9 +33,10 @@ export HIVE_HOME=${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin
 echo ""
 echo "METASTORE_VERSION=$METASTORE_VERSION"
 echo "HADOOP_VERSION=$HADOOP_VERSION"
+echo "JAVA_HOME=$JAVA_HOME"
 echo ""
 
-cat >${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-log4j2.properties <<-EOF
+cat >${HIVE_CONF_DIR}/metastore-log4j2.properties <<-EOF
 status = INFO
 name = MetastoreLog4j2
 packages = org.apache.hadoop.hive.metastore
@@ -79,7 +64,7 @@ rootLogger.appenderRefs = root
 rootLogger.appenderRef.root.ref = console
 EOF
 
-cat >${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-site.xml <<-EOF
+cat >${HIVE_CONF_DIR}/metastore-site.xml <<-EOF
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <configuration>
@@ -144,11 +129,16 @@ cat >${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-si
     <value>com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem</value>
     <description>The FileSystem implementation for gs: URIs</description>
   </property>
+  <!-- AWS (S3A) connector configuration -->
+  <property>
+    <name>fs.s3a.impl</name>
+    <value>org.apache.hadoop.fs.s3a.S3AFileSystem</value>
+  </property>
 EOF
 
 # Add GCS configuration if environment variables are set
 if [ ! -z "${GCS_PROJECT_ID}" ]; then
-cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-site.xml <<-EOF
+cat >>${HIVE_CONF_DIR}/metastore-site.xml <<-EOF
   <property>
     <name>fs.gs.project.id</name>
     <value>${GCS_PROJECT_ID}</value>
@@ -160,7 +150,7 @@ if [ ! -z "${GCS_WORKLOAD_IDENTITY_ENABLED}" ] && [ "${GCS_WORKLOAD_IDENTITY_ENA
   # Workload Identity Federation configuration
   echo "Using Workload Identity Federation for GCS authentication"
   
-  cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-site.xml <<-EOF
+  cat >>${HIVE_CONF_DIR}/metastore-site.xml <<-EOF
   <property>
     <name>fs.gs.auth.type</name>
     <value>COMPUTE</value>
@@ -168,7 +158,7 @@ if [ ! -z "${GCS_WORKLOAD_IDENTITY_ENABLED}" ] && [ "${GCS_WORKLOAD_IDENTITY_ENA
 EOF
 # If a service account is specified for impersonation with WIF
 if [ ! -z "${GCS_IMPERSONATION_SERVICE_ACCOUNT}" ]; then
-  cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-site.xml <<-EOF
+  cat >>${HIVE_CONF_DIR}/metastore-site.xml <<-EOF
   <property>
     <name>fs.gs.auth.impersonation.service.account</name>
     <value>${GCS_IMPERSONATION_SERVICE_ACCOUNT}</value>
@@ -176,7 +166,7 @@ if [ ! -z "${GCS_IMPERSONATION_SERVICE_ACCOUNT}" ]; then
 EOF
 fi
 elif [ ! -z "${GCS_SERVICE_ACCOUNT_JSON_KEYFILE}" ]; then
-cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-site.xml <<-EOF
+cat >>${HIVE_CONF_DIR}/metastore-site.xml <<-EOF
   <property>
     <name>google.cloud.auth.service.account.enable</name>
     <value>true</value>
@@ -189,7 +179,7 @@ EOF
 fi
 
 if [ ! -z "${GCS_WAREHOUSE_DIRECTORY}" ]; then
-cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-site.xml <<-EOF
+cat >>${HIVE_CONF_DIR}/metastore-site.xml <<-EOF
   <property>
     <name>metastore.warehouse.dir</name>
     <value>gs://${GCS_WAREHOUSE_DIRECTORY}/hive-warehouse/</value>
@@ -199,7 +189,7 @@ fi
 
 if [ ! -z "${S3_ENDPOINT}" ]
 then
-cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-site.xml <<-EOF
+cat >>${HIVE_CONF_DIR}/metastore-site.xml <<-EOF
   <property>
     <name>fs.s3a.endpoint</name>
     <value>${S3_ENDPOINT}</value>
@@ -209,7 +199,7 @@ fi
 
 if [ ! -z "${S3_ACCESS_KEY}" ]
 then
-cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-site.xml <<-EOF
+cat >>${HIVE_CONF_DIR}/metastore-site.xml <<-EOF
   <property>
     <name>fs.s3a.access.key</name>
     <value>${S3_ACCESS_KEY}</value>
@@ -218,12 +208,16 @@ cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-s
     <name>fs.s3a.secret.key</name>
     <value>${S3_SECRET_KEY}</value>
   </property>
+  <property>
+      <name>fs.s3a.aws.credentials.provider</name>
+      <value>org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider</value>
+  </property>
 EOF
 fi
 
 if [ ! -z "${S3_WAREHOUSE_DIRECTORY}" ]
 then
-cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-site.xml <<-EOF
+cat >>${HIVE_CONF_DIR}/metastore-site.xml <<-EOF
   <property>
     <name>metastore.warehouse.dir</name>
     <value>s3a://${S3_WAREHOUSE_DIRECTORY}/hive-warehouse/</value>
@@ -233,7 +227,7 @@ fi
 
 if [ ! -z "${S3_PROXY_HOST}" ]
 then
-cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-site.xml <<-EOF
+cat >>${HIVE_CONF_DIR}/metastore-site.xml <<-EOF
   <property>
     <name>fs.s3a.proxy.host</name>
     <value>${S3_PROXY_HOST}</value>
@@ -247,7 +241,7 @@ fi
 
 if [ ! -z "${ASSUME_ROLE_ARN}" ]
 then
-cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-site.xml <<-EOF
+cat >>${HIVE_CONF_DIR}/metastore-site.xml <<-EOF
   <property>
     <name>fs.s3a.aws.credentials.provider</name>
     <value>org.apache.hadoop.fs.s3a.auth.AssumedRoleCredentialProvider</value>
@@ -263,14 +257,20 @@ cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-s
 EOF
 fi
 
-cat >>${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/conf/metastore-site.xml <<-EOF
+cat >>${HIVE_CONF_DIR}/metastore-site.xml <<-EOF
 </configuration>
 EOF
 
-# set +x
+### Override the configuration:
+#### Expand env variables and place them inside $HADOOP_CONF_DIR and $HIVE_CONF_DIR
+[ -d /tmp/envsubst ] && find /tmp/envsubst -type f | while read -r src; do
+  dest="${src#/tmp/envsubst}"
+  eval "cat <<EOF > \"$dest\"
+$(cat "$src")
+EOF"
+done
 
 export PGPASSWORD=${HIVEMS_PASSWORD}
-
 
 echo "Will wait for ${DB_DRIVER_NAME} server to be ready"
 if [ "$DB_DRIVER_NAME" = "mysql" ]; then
@@ -290,10 +290,10 @@ if [ "$MODE" = "init" ]; then
     echo "Initialize schema if DBS table does not exist"
     if [ "$DB_DRIVER_NAME" = "mysql" ]; then
         mysql --host=${DB_HOST} --port=${DB_PORT} -u ${HIVEMS_USER} -p${HIVEMS_PASSWORD} -D ${HIVEMS_DB} -e 'SELECT "DB_ID" FROM "DBS"' >/dev/null 2>&1;
-        if [ $? -ne 0 ]; then echo "Will initialize the DB"; ${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/bin/schematool -initSchema -dbType ${DB_DRIVER_NAME} -userName ${HIVEMS_USER} -passWord ${HIVEMS_PASSWORD} -url "jdbc:mysql://${DB_HOST}:${DB_PORT}/${HIVEMS_DB}?createDatabaseIfNotExist=true&connectTimeout=1000"; fi
+        if [ $? -ne 0 ]; then echo "Will initialize the DB"; ${HIVE_HOME}/bin/schematool -initSchema -dbType ${DB_DRIVER_NAME} -userName ${HIVEMS_USER} -passWord ${HIVEMS_PASSWORD} -url "jdbc:mysql://${DB_HOST}:${DB_PORT}/${HIVEMS_DB}?createDatabaseIfNotExist=true&connectTimeout=1000"; fi
     else
         psql --host=${DB_HOST} --port=${DB_PORT} -U ${HIVEMS_USER} -d ${HIVEMS_DB} -c 'SELECT "DB_ID" FROM "DBS"' >/dev/null 2>&1;
-        if [ $? -ne 0 ]; then echo "Will initialize the DB"; ${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/bin/schematool -initSchema -dbType postgres; fi
+        if [ $? -ne 0 ]; then echo "Will initialize the DB"; ${HIVE_HOME}/bin/schematool -initSchema -dbType postgres; fi
     fi
     echo "DATABASE SCHEMA SHOULD BE OK NOW!!"
     exit 0
@@ -323,7 +323,7 @@ fi
 # For the metastore, this is an entry variable hosting only the listening port, as a single number. So failure.
 unset METASTORE_PORT
 
-${BASEDIR}/apache-hive-metastore-${METASTORE_VERSION}-bin/bin/start-metastore -p $THRIFT_LISTENING_PORT
+${HIVE_HOME}/bin/start-metastore -p $THRIFT_LISTENING_PORT
 err=$?
 
 if [ -n "$WAIT_ON_ERROR" ]; then
