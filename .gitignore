@@ -29,3 +29,8 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+# Local overrides
+local/
+.tmp/
+*.tgz

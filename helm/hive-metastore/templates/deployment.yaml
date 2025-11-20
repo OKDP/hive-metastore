@@ -1,3 +1,7 @@
+{{- $hasGCS := and
+    (eq .Values.cloud_storage "gcs")
+    (eq .Values.gcs.workloadIdentity.enabled false)
+-}}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -29,7 +33,7 @@ spec:
         iam.amazonaws.com/role: {{ .Values.aws.podIamRole }}
       {{- end }}
       labels:
-      {{- include "metastore.labels" . | nindent 8 }}
+        {{- include "metastore.labels" . | nindent 8 }}
     spec:
       {{- with .Values.image.pullSecrets }}
       imagePullSecrets:
@@ -94,13 +98,13 @@ spec:
                   name: {{ .Values.s3.secretKey.secretName }}
                   key: {{ .Values.s3.secretKey.propertyName }}
           {{- end }}
-          {{ if .Values.s3.proxy }}
+          {{- if .Values.s3.proxy }}
             - name: S3_PROXY_HOST
               value: "{{ .Values.s3.proxy.host }}"
             - name: S3_PROXY_PORT
               value: "{{ .Values.s3.proxy.port }}"
           {{- end }}
-          {{ if .Values.aws.s3AssumeRoleArn }}
+          {{- if .Values.aws.s3AssumeRoleArn }}
             - name: ASSUME_ROLE_ARN
               value: {{ .Values.aws.s3AssumeRoleArn }}
           {{ end }}
@@ -118,7 +122,7 @@ spec:
               value: "{{ .Values.db.port | default "5432" }}"
             - name: HIVEMS_DB
               value: {{ .Values.db.databaseName }}
-            {{- if .Values.db.user.name }}
+            {{- if eq (include "metastore.hasHiveMsUserEnv" .) "false" }}
             - name: HIVEMS_USER
               value: {{ .Values.db.user.name | quote }}
             {{- end }}
@@ -127,14 +131,21 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.db.user.password.secretName }}
                   key: {{ .Values.db.user.password.propertyName }}
-            {{- if .Values.extraEnvRaw }}
-              {{- toYaml .Values.extraEnvRaw | nindent 12 }}
+            {{- with .Values.extraEnvRaw }}
+              {{- toYaml . | nindent 12 }}
             {{- end }}
-          {{- if and (eq .Values.cloud_storage "gcs") (eq .Values.gcs.workloadIdentity.enabled false) }}
+          {{- if or $hasGCS .Values.configOverrides }}
           volumeMounts:
+            {{- if $hasGCS }}
             - name: gcs-key
               mountPath: /var/secrets/google
               readOnly: true
+            {{- end }}
+            {{- range $filename, $file := .Values.configOverrides }}
+            - name: metastore-config
+              mountPath: /tmp/envsubst{{ $file.mountPath }}
+              subPath: {{ $filename }}
+            {{- end }}
           {{- end }}
       {{- with .Values.podSecurityContext }}
       securityContext:
@@ -152,12 +163,20 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if and (eq .Values.cloud_storage "gcs") (eq .Values.gcs.workloadIdentity.enabled false) }}
+
+      {{- if or $hasGCS .Values.configOverrides }}
       volumes:
+        {{- if .Values.configOverrides }}
+        - name: metastore-config
+          configMap:
+            name: {{ include "metastore.fullname" . }}
+        {{- end }}
+        {{- if $hasGCS }}
         - name: gcs-key
           secret:
             secretName: {{ include "metastore.fullname" . }}-gcs-key
             items:
               - key: hive_metastore_gcs_key
                 path: key.json
+        {{- end }}
       {{- end }}
