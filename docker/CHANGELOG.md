@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.1.4-1.3.0](https://github.com/OKDP/hive-metastore/compare/v3.1.3-1.3.0...v3.1.4-1.3.0) (2025-11-20)
+
+
+### Bug Fixes
+
+* add AWS connectors are on the Hadoop classpath ([fd0a6dc](https://github.com/OKDP/hive-metastore/commit/fd0a6dcb3c60ca2e658d07830dd769d7e15bec0e))
+* add support for postgreSQL and ability to pass database username as secret ([7be8c13](https://github.com/OKDP/hive-metastore/commit/7be8c13f02f0825a1b10c89d3cfed53a9b0370fd))
+* optimize image size by cleaning unsed files ([6992ea3](https://github.com/OKDP/hive-metastore/commit/6992ea3a0911b2b56a617d3edc64c9f73d76ac77))
+
 ## [3.1.3-1.3.0](https://github.com/OKDP/hive-metastore/compare/v3.1.3-1.3.0...v3.1.3-1.3.0) (2025-10-07)
 
 
