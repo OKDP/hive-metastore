@@ -1,5 +1,5 @@
 #
-# Copyright 2024 tosit.io
+# Copyright 2025 okdp.io
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ on:
   
 permissions:
   contents: write
+  packages: write
 
 # https://docs.github.com/en/actions/using-jobs/using-concurrency
 concurrency:
@@ -60,15 +61,35 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-defaults:
-  run:
-    shell: bash
-
 jobs:
 
-  ci:
-    name: ci
-    uses: okdp/gh-workflows/.github/workflows/helm-lint-template.yml@v1
+  metastore-versions:
+    runs-on: ubuntu-latest
+    outputs:
+      metastore_versions: ${{ steps.parse.outputs.metastore_versions }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Get metastore versions
+        id: parse
+        uses: ./.github/actions/metastore-versions
+
+  metastore-docker:
+    name: build-hive-metastore
+    strategy:
+      fail-fast: false
+      matrix:
+        metastore-version: ${{ fromJson(needs.metastore-versions.outputs.metastore_versions) }}
+    uses: ./.github/workflows/docker-build-test-push-template.yml
+    with:
+      context: .
+      dockerfile: docker/Dockerfile
+      metastore_version: ${{ matrix.metastore-version }}
+    needs: [metastore-versions]
+
+  helm-lint:
+    name: helm-lint
+    uses: ./.github/workflows/helm-lint-template.yml
 
 
 

@@ -1,0 +1,21 @@
+name: "Parse Hive Metastore Versions"
+description: "Reads metastore version list and package.json version"
+
+outputs:
+  metastore_versions:
+    description: "List of metastore versions extracted from docker/metastore_4x.version"
+    value: ${{ steps.read_metastore.outputs.metastore_versions }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Read metastore versions
+      id: read_metastore
+      shell: bash
+      run: |
+        # Extract lines like ARG_METASTORE_VERSION=4.0.1
+        versions=$(grep -oP 'ARG_METASTORE_VERSION=\K[0-9.]+' docker/metastore_4x.version | jq -R . | jq -s -c .)
+
+        echo "Parsed metastore versions: $versions"
+        echo "metastore_versions=$versions" >> "$GITHUB_OUTPUT"
+
