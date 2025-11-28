@@ -32,6 +32,7 @@ on:
       - "!README.md"
       - "!**/README.md"
       - "!docs/**"
+      - "!.release-please-manifest.json"
 
   push:
     branches:
@@ -48,6 +49,7 @@ on:
       - "!README.md"
       - "!**/README.md"
       - "!docs/**"
+      - "!.release-please-manifest.json"
 
   workflow_dispatch:
   

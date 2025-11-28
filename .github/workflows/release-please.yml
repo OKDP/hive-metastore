@@ -28,12 +28,74 @@ permissions:
   pull-requests: write
   issues: write
 
-defaults:
-  run:
-    shell: bash
+# https://docs.github.com/en/actions/using-jobs/using-concurrency
+concurrency:
+  # Only cancel in-progress jobs or runs for the current workflow - matches against branch & tags
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   release-please:
-    uses: okdp/gh-workflows/.github/workflows/helm-docker-release-please.yml@v1
+    runs-on: ubuntu-latest
+    outputs:
+      docker-release_created: ${{ steps.release-please.outputs.docker--release_created }}
+      docker-tag_name: ${{ steps.release-please.outputs.docker--tag_name }}
+      docker-version: ${{ steps.release-please.outputs.docker--version }}
+      helm-release_created: ${{ steps.release-please.outputs['helm/hive-metastore--release_created'] }}
+      helm-tag_name: ${{ steps.release-please.outputs['helm/hive-metastore--tag_name'] }}
+      helm-version: ${{ steps.release-please.outputs['helm/hive-metastore--version'] }}
+    # Skip the release process in the fork
+    # The pull request should come from the same repo (github_token from the fork does not have write permissions)
+    if: github.repository_owner == 'OKDP' && github.event.pull_request.merged == true && github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release-please
+
+  metastore-versions:
+    runs-on: ubuntu-latest
+    outputs:
+      metastore_versions: ${{ steps.parse.outputs.metastore_versions }}
+      git_latest_release_tag: ${{ needs.release-please.outputs.docker-tag_name }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.release-please.outputs.docker-tag_name }}
+      - name: Get metastore versions
+        id: parse
+        uses: ./.github/actions/metastore-versions
+
+      - name: Info - Found latest release tag
+        run: |
+          echo "tag_name: ${{ needs.release-please.outputs.docker-tag_name }}"
+        shell: bash
+
+    needs: [release-please]
+
+  docker-publish:
+    needs: [metastore-versions]
+    if: github.repository_owner == 'OKDP' && needs.release-please.outputs.docker-release_created == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        metastore-version: ${{ fromJson(needs.metastore-versions.outputs.metastore_versions) }}
+    uses: ./.github/workflows/docker-build-test-push-template.yml
+    with:
+      context: .
+      dockerfile: docker/Dockerfile
+      metastore_version: ${{ matrix.metastore-version }}
+      publish_to_registry: "true"
+      registry: ${{ vars.REGISTRY || 'quay.io' }}
+      git_latest_release_tag: ${{ needs.metastore-versions.outputs.git_latest_release_tag }}
+    secrets: inherit
+
+  helm-chart-publish:
+    needs: [release-please]
+    if: github.repository_owner == 'OKDP' && needs.release-please.outputs.helm-release_created == 'true'
+    uses: okdp/gh-workflows/.github/workflows/helm-publish-template.yml@v1
+    with:
+      path: helm/hive-metastore
+      chart_name: hive-metastore
+      version: ${{ needs.release-please.outputs.helm-version }}
+      git_tag_name: ${{ needs.release-please.outputs.helm-tag_name }}
     secrets: inherit
                 

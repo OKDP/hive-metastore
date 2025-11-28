@@ -116,6 +116,19 @@ jobs:
           ref: ${{ github.ref }}
           head_ref: ${{ github.head_ref }}
 
+      - name: Get image tag
+        id: image-tag
+        run: |
+          branch="${{ steps.get-branch.outputs.branch }}"
+          release="${{ inputs.git_latest_release_tag }}"
+          if [[ -n "$branch" ]]; then
+            tag="${branch//\//--}"
+          else
+            tag="${release#v}"
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+        shell: bash
+
       - name: Build and push image ${{ steps.registry.outputs.ci_repo }}/${{ inputs.image }} (${{ inputs.metastore_version }}) 📤
         if: inputs.publish_to_registry == 'false'
         uses: docker/build-push-action@v5
@@ -125,9 +138,9 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ steps.registry.outputs.ci_repo }}/${{ inputs.image }}:${{ inputs.metastore_version }}-${{ steps.get-branch.outputs.branch }}
+            ${{ steps.registry.outputs.ci_repo }}/${{ inputs.image }}:${{ inputs.metastore_version }}-${{ steps.image-tag.outputs.tag }}
           labels: |
-            org.opencontainers.image.version="${{ inputs.metastore_version }}-${{ steps.get-branch.outputs.branch }}"
+            org.opencontainers.image.version="${{ inputs.metastore_version }}-${{ steps.image-tag.outputs.tag }}"
             org.opencontainers.image.source="https://github.com/${{ github.repository }}"
             org.opencontainers.image.licenses="Apache-2.0"
           build-args: |
@@ -142,9 +155,10 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ steps.registry.outputs.publish_repo }}/${{ inputs.image }}:${{ inputs.metastore_version }}-${{ inputs.git_latest_release_tag }}
+            ${{ steps.registry.outputs.publish_repo }}/${{ inputs.image }}:${{ inputs.metastore_version }}
+            ${{ steps.registry.outputs.publish_repo }}/${{ inputs.image }}:${{ inputs.metastore_version }}-${{ steps.image-tag.outputs.tag }}
           labels: |
-            org.opencontainers.image.version="${{ inputs.metastore_version }}-${{ inputs.inputs.git_latest_release_tag }}"
+            org.opencontainers.image.version="${{ inputs.metastore_version }}-${{ steps.image-tag.outputs.tag }}"
             org.opencontainers.image.source="https://github.com/${{ github.repository }}"
             org.opencontainers.image.licenses="Apache-2.0"
           build-args: |
