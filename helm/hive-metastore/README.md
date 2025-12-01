@@ -35,13 +35,13 @@ This chart bootstraps a [Hive Metastore](https://cwiki.apache.org/confluence/dis
 To install the chart with the release name `my-release`:
 
 ```shell
-$ helm install my-release oci://quay.io/okdp/charts/hive-metastore --version 3.1.3-1.3.1
+$ helm install my-release oci://quay.io/okdp/charts/hive-metastore --version 1.4.0
 ```
 
 This will create a release of `my-release` in the default namespace. To install in a different namespace:
 
 ```shell
-$ helm install my-release oci://quay.io/okdp/charts/hive-metastore --version 3.1.3-1.3.1 \
+$ helm install my-release oci://quay.io/okdp/charts/hive-metastore --version 1.4.0 \
        --namespace hive-metastore
 ```
 
@@ -62,7 +62,7 @@ The command removes all the Kubernetes components associated with the chart and 
 To download the chart locally, use the following command:
 
 ```shell
-$ helm pull oci://quay.io/okdp/charts/hive-metastore --version 3.1.3-1.3.1
+$ helm pull oci://quay.io/okdp/charts/hive-metastore --version 1.4.0
 ```
 
 ## Values
