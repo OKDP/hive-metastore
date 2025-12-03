@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.4.0](https://github.com/OKDP/hive-metastore/compare/helm-hive-metastore/v3.1.3-1.3.0...helm-hive-metastore/v1.4.0) (2025-12-03)
+
+
+### chore
+
+* release 1.4.0 ([60aca3d](https://github.com/OKDP/hive-metastore/commit/60aca3d1ea2991e615533876e7d0eb89b42804ec))
+
+
+### Features
+
+* allow custom Hadoop/Hive Metastore config overrides (core-site.xml, metastore-site.xml, log4j2, etc.) [#62](https://github.com/OKDP/hive-metastore/issues/62) ([6e0ca10](https://github.com/OKDP/hive-metastore/commit/6e0ca10419c720552936757691cc682ea8633e42))
+
+
+### Bug Fixes
+
+* add support for postgreSQL and ability to pass database username as secret ([7be8c13](https://github.com/OKDP/hive-metastore/commit/7be8c13f02f0825a1b10c89d3cfed53a9b0370fd))
+
 ## [3.1.3-1.3.0](https://github.com/OKDP/hive-metastore/compare/helm-hive-metastore/v3.1.3-1.3.0...helm-hive-metastore/v3.1.3-1.3.0) (2025-10-07)
 
 
