@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.2.0-1.3.0](https://github.com/OKDP/hive-metastore/compare/v3.1.3-1.3.0...v3.2.0-1.3.0) (2025-12-03)
+
+
+### Features
+
+* allow custom Hadoop/Hive Metastore config overrides (core-site.xml, metastore-site.xml, log4j2, etc.) [#62](https://github.com/OKDP/hive-metastore/issues/62) ([6e0ca10](https://github.com/OKDP/hive-metastore/commit/6e0ca10419c720552936757691cc682ea8633e42))
+
+
+### Bug Fixes
+
+* add AWS connectors are on the Hadoop classpath ([fd0a6dc](https://github.com/OKDP/hive-metastore/commit/fd0a6dcb3c60ca2e658d07830dd769d7e15bec0e))
+* add support for postgreSQL and ability to pass database username as secret ([7be8c13](https://github.com/OKDP/hive-metastore/commit/7be8c13f02f0825a1b10c89d3cfed53a9b0370fd))
+* optimize image size by cleaning unsed files ([6992ea3](https://github.com/OKDP/hive-metastore/commit/6992ea3a0911b2b56a617d3edc64c9f73d76ac77))
+* update MySQL client version to 8.0.44-0ubuntu0.24.04.1 ([4776145](https://github.com/OKDP/hive-metastore/commit/477614528f9c1575bb65c9745c04d565dcf147d6))
+
 ## [3.1.3-1.3.0](https://github.com/OKDP/hive-metastore/compare/v3.1.3-1.3.0...v3.1.3-1.3.0) (2025-10-07)
 
 
