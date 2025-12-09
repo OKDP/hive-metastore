@@ -65,9 +65,28 @@ jobs:
           echo "tag_name: ${{ steps.git-release-tag.outputs.tag }}"
         shell: bash
 
-  docker-publish:
+  metastore-versions:
     needs: [latest-github-release]
-    if: github.repository_owner == 'OKDP' && needs.latest-github-release.outputs.tag_name != ''
+    runs-on: ubuntu-latest
+    outputs:
+      metastore_versions: ${{ steps.parse.outputs.metastore_versions }}
+      git_latest_release_tag: ${{ needs.latest-github-release.outputs.tag_name }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.latest-github-release.outputs.tag_name }}
+      - name: Get metastore versions
+        id: parse
+        uses: ./.github/actions/metastore-versions
+
+      - name: Info - Found latest release tag
+        run: |
+          echo "tag_name: ${{ needs.latest-github-release.outputs.tag_name }}"
+        shell: bash
+
+  docker-publish:
+    needs: [metastore-versions]
+    if: github.repository_owner == 'OKDP' && needs.metastore-versions.outputs.git_latest_release_tag != ''
     strategy:
       fail-fast: false
       matrix:
@@ -79,5 +98,5 @@ jobs:
       metastore_version: ${{ matrix.metastore-version }}
       publish_to_registry: "true"
       registry: ${{ vars.REGISTRY || 'quay.io' }}
-      git_latest_release_tag: ${{ needs.latest-github-release.outputs.tag_name }}
+      git_latest_release_tag: ${{ needs.latest-github-release.outputs.git_latest_release_tag }}
     secrets: inherit
