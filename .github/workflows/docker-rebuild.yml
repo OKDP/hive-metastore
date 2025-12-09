@@ -56,7 +56,7 @@ jobs:
         id: git-release-tag
         uses: oprypin/find-latest-tag@v1
         with:
-          repository: octokit/rest.js
+          repository: ${{ github.repository }}
           releases-only: true
           prefix: "v"
 
