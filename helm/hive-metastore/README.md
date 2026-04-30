@@ -27,6 +27,8 @@
 
 # hive-metastore
 
+A Helm chart to deploy Apache Hive Metastore on Kubernetes, with PostgreSQL backend and S3 warehouse storage.
+
 ## Introduction
 
 This chart bootstraps a [Hive Metastore](https://cwiki.apache.org/confluence/display/hive/design#Design-Metastore) deployment using the [Helm](https://helm.sh) package manager.
