@@ -1,0 +1,55 @@
+<mxfile host="app.diagrams.net" agent="hand-written">
+  <diagram name="hive-metastore-architecture" id="hive-metastore-arch">
+    <mxGraphModel dx="900" dy="500" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="500" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="OKDP Hive Metastore — runtime topology" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="250" y="20" width="400" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Client box -->
+        <mxCell id="client" value="&lt;b&gt;Spark / Trino / Hive client&lt;/b&gt;&#10;&lt;i&gt;SQL engine querying tables&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="80" y="200" width="200" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Hive Metastore Pod -->
+        <mxCell id="metastore" value="&lt;b&gt;Hive Metastore Pod&lt;/b&gt;&#10;&lt;i&gt;Apache Hive standalone&lt;/i&gt;&#10;&lt;i&gt;Thrift :9083 · JMX :9025&lt;/i&gt;&#10;&lt;i&gt;quay.io/okdp/hive-metastore&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="380" y="180" width="200" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- PostgreSQL -->
+        <mxCell id="postgres" value="&lt;b&gt;PostgreSQL&lt;/b&gt;&#10;&lt;i&gt;Hive schema (DBS, TBLS, …)&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="680" y="80" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- S3 -->
+        <mxCell id="s3" value="&lt;b&gt;S3-compatible storage&lt;/b&gt;&#10;&lt;i&gt;Warehouse (Parquet, ORC, …)&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="680" y="320" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Prometheus -->
+        <mxCell id="prometheus" value="&lt;b&gt;Prometheus&lt;/b&gt;&#10;&lt;i&gt;Metrics scraper&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="80" y="380" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Arrows -->
+        <mxCell id="e1" value="Thrift :9083" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;fontSize=10" edge="1" parent="1" source="client" target="metastore">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="JDBC" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;fontSize=10" edge="1" parent="1" source="metastore" target="postgres">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="s3a://" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;fontSize=10" edge="1" parent="1" source="metastore" target="s3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="scrape :9025" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;fontSize=10;dashed=1" edge="1" parent="1" source="prometheus" target="metastore">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

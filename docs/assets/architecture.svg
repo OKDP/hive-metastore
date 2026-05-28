@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" font-family="Helvetica, Arial, sans-serif" font-size="11">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#000"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="450" y="40" text-anchor="middle" font-size="14" font-weight="bold">OKDP Hive Metastore — runtime topology</text>
+
+  <!-- Client box (left) -->
+  <rect x="80" y="200" width="200" height="70" rx="6" ry="6" fill="#fff" stroke="#000" stroke-width="1"/>
+  <text x="180" y="225" text-anchor="middle" font-weight="bold">Spark / Trino / Hive client</text>
+  <text x="180" y="248" text-anchor="middle" font-style="italic">SQL engine querying tables</text>
+
+  <!-- Hive Metastore Pod (center) -->
+  <rect x="380" y="180" width="200" height="110" rx="6" ry="6" fill="#fff" stroke="#000" stroke-width="1"/>
+  <text x="480" y="210" text-anchor="middle" font-weight="bold">Hive Metastore Pod</text>
+  <text x="480" y="232" text-anchor="middle" font-style="italic">Apache Hive standalone</text>
+  <text x="480" y="250" text-anchor="middle" font-style="italic">Thrift :9083 · JMX :9025</text>
+  <text x="480" y="272" text-anchor="middle" font-style="italic">quay.io/okdp/hive-metastore</text>
+
+  <!-- PostgreSQL (top right) -->
+  <rect x="680" y="80" width="180" height="70" rx="6" ry="6" fill="#fff" stroke="#000" stroke-width="1"/>
+  <text x="770" y="105" text-anchor="middle" font-weight="bold">PostgreSQL</text>
+  <text x="770" y="128" text-anchor="middle" font-style="italic">Hive schema (DBS, TBLS, …)</text>
+
+  <!-- S3 (bottom right) -->
+  <rect x="680" y="320" width="180" height="70" rx="6" ry="6" fill="#fff" stroke="#000" stroke-width="1"/>
+  <text x="770" y="345" text-anchor="middle" font-weight="bold">S3-compatible storage</text>
+  <text x="770" y="368" text-anchor="middle" font-style="italic">Warehouse (Parquet, ORC, …)</text>
+
+  <!-- Prometheus (bottom left) -->
+  <rect x="80" y="380" width="200" height="60" rx="6" ry="6" fill="#fff" stroke="#000" stroke-width="1"/>
+  <text x="180" y="405" text-anchor="middle" font-weight="bold">Prometheus</text>
+  <text x="180" y="425" text-anchor="middle" font-style="italic">Metrics scraper</text>
+
+  <!-- Arrows -->
+  <!-- Client -> Metastore (Thrift) -->
+  <line x1="280" y1="235" x2="380" y2="235" stroke="#000" stroke-width="1" marker-end="url(#arrow)"/>
+  <text x="330" y="225" text-anchor="middle" font-size="10">Thrift :9083</text>
+
+  <!-- Metastore -> PostgreSQL (JDBC) -->
+  <line x1="580" y1="200" x2="680" y2="135" stroke="#000" stroke-width="1" marker-end="url(#arrow)"/>
+  <text x="625" y="155" text-anchor="middle" font-size="10">JDBC</text>
+
+  <!-- Metastore -> S3 (s3a://) -->
+  <line x1="580" y1="270" x2="680" y2="335" stroke="#000" stroke-width="1" marker-end="url(#arrow)"/>
+  <text x="625" y="315" text-anchor="middle" font-size="10">s3a://</text>
+
+  <!-- Prometheus -> Metastore (scrape, dashed) -->
+  <line x1="280" y1="395" x2="430" y2="290" stroke="#000" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+  <text x="370" y="360" text-anchor="middle" font-size="10">scrape :9025</text>
+</svg>
