@@ -48,7 +48,7 @@ cd okdp-sandbox
 # Follow the sandbox README (Kind + Flux + KuboCD)
 ```
 
-### 6.1 Expected result
+### Expected result
 
 Once the sandbox is up, the metastore is reachable inside the cluster on its Thrift endpoint (port `9083`), and the init Job has completed schema creation.
 
@@ -132,7 +132,7 @@ helm lint helm/hive-metastore
 ct install --config .ct.yml
 ```
 
-### 14.1 Expected result
+### Expected result
 
 ```
 ==> Linting helm/hive-metastore
