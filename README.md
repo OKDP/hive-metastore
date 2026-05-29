@@ -47,17 +47,22 @@ Docker image and Helm chart to deploy **Apache Hive Metastore** on Kubernetes. T
 
 ## Quick Start
 
-The chart cannot be installed standalone — it requires a PostgreSQL server, an S3 endpoint and Kubernetes Secrets holding their credentials. The quickest way to try it is the **OKDP sandbox**, which pre-wires PostgreSQL (CloudNativePG), S3 (SeaweedFS) and `hive-metastore` on a local Kind cluster:
+The chart requires external PostgreSQL + S3 to actually deploy — see [Installation](#installation) below for the full procedure. To quickly verify that the published artifacts are accessible:
 
 ```sh
-git clone https://github.com/OKDP/okdp-sandbox.git
-cd okdp-sandbox
-# Follow the sandbox README (Kind + Flux + KuboCD)
+docker pull quay.io/okdp/hive-metastore:4.0.1
+helm pull oci://quay.io/okdp/charts/hive-metastore --version 1.4.0
 ```
 
 ### Expected result
 
-Once the sandbox is up, the metastore is reachable inside the cluster on its Thrift endpoint (port `9083`), and the init Job has completed schema creation.
+```
+Status: Downloaded newer image for quay.io/okdp/hive-metastore:4.0.1
+quay.io/okdp/hive-metastore:4.0.1
+
+Pulled: quay.io/okdp/charts/hive-metastore:1.4.0
+Digest: sha256:ecb29c65e0a937175fe3bf51c10e45226d71a84e729662eeea85d8330ccdeef3
+```
 
 ## Installation
 
@@ -104,12 +109,6 @@ The full chart values reference is in the [Helm chart README](helm/hive-metastor
 | `networkPolicies.enabled` | Enable the NetworkPolicy restricting access to port 9083 | `true` |
 | `image.repository` | Docker image repository | `quay.io/okdp/hive-metastore` |
 | `image.tag` | Image tag (override with a published version, e.g. `4.0.1`) | `latest` |
-
-## OKDP integration
-
-`hive-metastore` is integrated into the OKDP sandbox as the shared metadata catalog used by Spark, Trino and Superset. It is deployed declaratively through KuboCD:
-
-- [`okdp-sandbox/packages/okdp-packages/hive-metastore`](https://github.com/OKDP/okdp-sandbox/tree/main/packages/okdp-packages/hive-metastore)
 
 ## Build
 
