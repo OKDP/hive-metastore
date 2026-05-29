@@ -24,6 +24,13 @@ Docker image and Helm chart to deploy **Apache Hive Metastore** on Kubernetes. T
 - Restricts inbound access to the Thrift port **9083** by default through a Kubernetes `NetworkPolicy` ([`helm/hive-metastore/templates/networkpolicy.yaml`](helm/hive-metastore/templates/networkpolicy.yaml), enabled by default in [`values.yaml`](helm/hive-metastore/values.yaml) — `networkPolicies.enabled: true`). The chart ships with no authentication enabled by default.
 - Builds multi-architecture images for **`linux/amd64`** and **`linux/arm64`** ([`.github/workflows/docker-build-test-push-template.yml#L138`](.github/workflows/docker-build-test-push-template.yml#L138)).
 
+## Components
+
+| Artifact | Registry | Description |
+|---|---|---|
+| Docker image | [`quay.io/okdp/hive-metastore`](https://quay.io/repository/okdp/hive-metastore) | Apache Hive standalone metastore, PostgreSQL/MySQL JDBC drivers, S3A connector and JMX Prometheus exporter. Multi-arch `linux/amd64` and `linux/arm64`. Currently published tags: `4.0.1`, `4.0.1-1.4.0`. |
+| Helm chart | [`quay.io/okdp/charts/hive-metastore`](https://quay.io/repository/okdp/charts/hive-metastore) | Deployment, init Job, NetworkPolicy, HPA, ServiceAccount, Service and ConfigMap (optional, for `configOverrides`). Current version `1.4.0`. |
+
 ## Architecture
 
 <p align="center">
@@ -97,13 +104,6 @@ The full chart values reference is in the [Helm chart README](helm/hive-metastor
 | `networkPolicies.enabled` | Enable the NetworkPolicy restricting access to port 9083 | `true` |
 | `image.repository` | Docker image repository | `quay.io/okdp/hive-metastore` |
 | `image.tag` | Image tag (override with a published version, e.g. `4.0.1`) | `latest` |
-
-## Components
-
-| Artifact | Registry | Description |
-|---|---|---|
-| Docker image | [`quay.io/okdp/hive-metastore`](https://quay.io/repository/okdp/hive-metastore) | Apache Hive standalone metastore, PostgreSQL/MySQL JDBC drivers, S3A connector and JMX Prometheus exporter. Multi-arch `linux/amd64` and `linux/arm64`. Currently published tags: `4.0.1`, `4.0.1-1.4.0`. |
-| Helm chart | [`quay.io/okdp/charts/hive-metastore`](https://quay.io/repository/okdp/charts/hive-metastore) | Deployment, init Job, NetworkPolicy, HPA, ServiceAccount, Service and ConfigMap (optional, for `configOverrides`). Current version `1.4.0`. |
 
 ## OKDP integration
 
