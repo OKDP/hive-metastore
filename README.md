@@ -1,28 +1,24 @@
-<a href="https://hive.apache.org/" target="_blank">
-  <img align="right" width="80" alt="Apache Hive" src="https://hive.apache.org/images/hive.svg" />
-</a>
-
 [![ci](https://github.com/OKDP/hive-metastore/actions/workflows/ci.yml/badge.svg)](https://github.com/OKDP/hive-metastore/actions/workflows/ci.yml)
 [![release-please](https://github.com/OKDP/hive-metastore/actions/workflows/release-please.yml/badge.svg)](https://github.com/OKDP/hive-metastore/actions/workflows/release-please.yml)
 [![Release](https://img.shields.io/github/v/release/OKDP/hive-metastore)](https://github.com/OKDP/hive-metastore/releases/latest)
 [![License Apache2](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
-<a href="https://okdp.io">
-  <img src="https://okdp.io/logos/okdp-notext.svg" height="20px" style="margin: 0 2px;" />
-</a>
 
 # OKDP Hive Metastore
 
 Docker image and Helm chart to deploy **Apache Hive Metastore** on Kubernetes. The Hive Metastore is the central metadata catalog of the Hadoop / Spark ecosystem: it lets Spark, Trino and Hive query tables stored on object storage. Intended for data teams running a lakehouse on Kubernetes who need a shared metadata service across their SQL engines.
 
+## Why this project
+
+Apache Hive provides the upstream Metastore service, but no maintained Kubernetes packaging. This repository adds the Docker image and Helm chart needed to run it on Kubernetes, with the operational pieces wired in: schema initialisation, bundled JDBC drivers, object storage configuration, JVM metrics and a default network policy.
+
+Compared with each SQL engine managing its own catalog, a shared metastore lets Spark, Trino and Hive query the same tables on object storage without duplicating table definitions across engines.
+
 ## What the project does
 
-- Deploys Apache Hive Metastore in **standalone** mode on Kubernetes through a ready-to-use Helm chart and a custom Docker image ([`docker/Dockerfile`](docker/Dockerfile), [`helm/hive-metastore/`](helm/hive-metastore/)).
-- Supports both **Hive 3.x** (`hive-standalone-metastore`) and **Hive 4.x** (`hive-standalone-metastore-server`) through the Dockerfile selector at [`docker/Dockerfile#L60-L64`](docker/Dockerfile#L60-L64). CI currently builds the versions listed in [`docker/metastore_4x.version`](docker/metastore_4x.version) (`4.0.1`).
-- Initialises the database schema automatically on install and upgrade. The chart ships a Job ([`helm/hive-metastore/templates/job.yaml`](helm/hive-metastore/templates/job.yaml)) registered as a `post-install` / `post-upgrade` Helm hook in [`helm/hive-metastore/values.yaml`](helm/hive-metastore/values.yaml) (`initJob.annotations`). The Job runs `schematool -initSchema` ([`docker/metastore.sh#L304-L314`](docker/metastore.sh#L304-L314)) when the `DBS` table is missing.
-- Bundles the **PostgreSQL JDBC driver 42.7.7** and the **MySQL connector 8.0.25** ([`docker/Dockerfile#L21-L22`](docker/Dockerfile#L21-L22)) — both backends are supported via `db.driverName`.
-- Exposes JVM metrics in Prometheus format on port **9025** ([`docker/Dockerfile#L26`](docker/Dockerfile#L26), [`docker/config.yaml`](docker/config.yaml)) via the [`jmx_prometheus_javaagent`](https://github.com/prometheus/jmx_exporter) Java agent.
-- Restricts inbound access to the Thrift port **9083** by default through a Kubernetes `NetworkPolicy` ([`helm/hive-metastore/templates/networkpolicy.yaml`](helm/hive-metastore/templates/networkpolicy.yaml), enabled by default in [`values.yaml`](helm/hive-metastore/values.yaml) — `networkPolicies.enabled: true`). The chart ships with no authentication enabled by default.
-- Builds multi-architecture images for **`linux/amd64`** and **`linux/arm64`** ([`.github/workflows/docker-build-test-push-template.yml#L138`](.github/workflows/docker-build-test-push-template.yml#L138)).
+- **Docker image** — runs Apache Hive Metastore in standalone mode (Hive 3.x or 4.x).
+- **Helm chart** — deploys the image on Kubernetes and creates the database schema automatically on first install.
+
+Together they let Spark, Trino and Hive share a single metadata catalog backed by PostgreSQL/MySQL and S3-compatible object storage.
 
 ## Components
 
@@ -37,6 +33,16 @@ Docker image and Helm chart to deploy **Apache Hive Metastore** on Kubernetes. T
   <img src="docs/assets/architecture.svg" alt="OKDP Hive Metastore — runtime topology" />
 </p>
 
+**Components in the topology:**
+
+- **SQL engine client** (Spark, Trino, Hive) — connects to the Metastore through Thrift on port `9083` to look up table definitions, partitions and warehouse paths.
+- **Hive Metastore Pod** — Apache Hive standalone Metastore process running as a Kubernetes `Deployment`. Exposes Thrift on `9083` for clients and JVM metrics on `9025` for Prometheus. Bundles the JDBC drivers, the S3A/GCS connectors and the JMX Prometheus exporter Java agent.
+- **PostgreSQL or MySQL** — relational database holding the Hive catalog tables (`DBS`, `TBLS`, `PARTITIONS`, `SDS`, …). Reached over JDBC. Schema is created on first install by the chart's post-install Job running `schematool -initSchema`.
+- **S3-compatible object storage** — holds the actual table data (Parquet, ORC, …). The Metastore only stores warehouse paths; SQL engine clients read the data files directly from object storage, without going through the Metastore.
+- **Prometheus** — scrapes JVM metrics on port `9025` through the `jmx_prometheus_javaagent` bundled in the image.
+
+For the upstream service design and protocol details, see the [Apache Hive Metastore design documentation](https://cwiki.apache.org/confluence/display/hive/design#Design-Metastore).
+
 ## Prerequisites
 
 - Kubernetes cluster (>= 1.19)
@@ -44,6 +50,8 @@ Docker image and Helm chart to deploy **Apache Hive Metastore** on Kubernetes. T
 - A **PostgreSQL** server reachable from the cluster, with an empty database (the chart's init Job creates the schema automatically)
 - An **S3** endpoint reachable from the cluster (AWS S3 or S3-compatible — e.g. SeaweedFS)
 - Two Kubernetes Secrets: one for the database password, one for the S3 access key and secret key
+
+Known-good baseline: chart `1.4.0` with image `4.0.1`, Helm 3 and Kubernetes `1.30`. This is the version set validated by the maintainers.
 
 ## Quick Start
 
@@ -69,7 +77,7 @@ Digest: sha256:ecb29c65e0a937175fe3bf51c10e45226d71a84e729662eeea85d8330ccdeef3
 Install on an existing cluster, against a managed PostgreSQL and an S3-compatible endpoint, using a `values.yaml` file that holds the configuration described in the next section:
 
 ```sh
-helm install my-release oci://quay.io/okdp/charts/hive-metastore \
+helm install hive-metastore oci://quay.io/okdp/charts/hive-metastore \
   --version 1.4.0 \
   --namespace hive-metastore --create-namespace \
   -f values.yaml
@@ -80,12 +88,26 @@ helm install my-release oci://quay.io/okdp/charts/hive-metastore \
 ```
 $ kubectl -n hive-metastore get pods
 NAME                       READY   STATUS      AGE
-my-release-hive-...        1/1     Running     1m
-my-release-hive-...        1/1     Running     1m
-my-release-hive-...        0/1     Completed   1m
+hive-metastore-...         1/1     Running     1m
+hive-metastore-...         1/1     Running     1m
+hive-metastore-...         0/1     Completed   1m
 
-$ kubectl -n hive-metastore logs job/my-release-hive-metastore
+$ kubectl -n hive-metastore logs job/hive-metastore
 DATABASE SCHEMA SHOULD BE OK NOW!!
+```
+
+### Cleanup
+
+Remove the Helm release:
+
+```sh
+helm uninstall hive-metastore -n hive-metastore
+```
+
+If the namespace was created only for this installation, remove it too:
+
+```sh
+kubectl delete namespace hive-metastore
 ```
 
 ## Configuration
@@ -110,37 +132,15 @@ The full chart values reference is in the [Helm chart README](helm/hive-metastor
 | `image.repository` | Docker image repository | `quay.io/okdp/hive-metastore` |
 | `image.tag` | Image tag (override with a published version, e.g. `4.0.1`) | `latest` |
 
-## Build
+## Alternatives
 
-A `Makefile` provides local build targets for development. The default `make docker` builds the image from a pre-downloaded Hive Metastore tarball ([`docker/Dockerfile-download`](docker/Dockerfile-download)). The CI workflow builds from [`docker/Dockerfile`](docker/Dockerfile) and publishes to `quay.io/okdp/hive-metastore`.
+Hive Metastore is a good fit when Spark, Trino, Hive or compatible engines need a shared catalog for tables on object storage. Other catalog options may be a better fit depending on the table format and governance model:
 
-```sh
-make docker
-```
-
-### Expected result
-
-The image is built locally and tagged as `quay.io/okdp/hive-metastore:<IMAGE_TAG>` using the variables defined at the top of the `Makefile` (default `IMAGE_TAG=3.1.3`). By default the target also pushes to the registry — comment out the `DOCKER_PUSH := --push` line for a build-only run.
-
-## Test
-
-Lint the Helm chart and run installation tests on a Kind cluster, using the configuration in [`.ct.yml`](.ct.yml):
-
-```sh
-helm lint helm/hive-metastore
-ct install --config .ct.yml
-```
-
-### Expected result
-
-```
-==> Linting helm/hive-metastore
-[INFO] Chart.yaml: icon is recommended
-
-1 chart(s) linted, 0 chart(s) failed
-```
-
-The full CI pipeline runs on every pull request via [`.github/workflows/ci.yml`](.github/workflows/ci.yml): Docker build for each version in [`docker/metastore_4x.version`](docker/metastore_4x.version), Helm lint, `chart-testing` installation on Kind, and image vulnerability scan via [`.github/workflows/trivy.yml`](.github/workflows/trivy.yml). The image is rebuilt weekly through [`.github/workflows/docker-rebuild.yml`](.github/workflows/docker-rebuild.yml) to pick up upstream base image security patches.
+| Alternative | When to consider it |
+|---|---|
+| AWS Glue Data Catalog | Managed Hive Metastore-compatible catalog on AWS, with minimal infrastructure to operate. |
+| Apache Polaris | REST catalog for Apache Iceberg, shared across Spark, Trino, Snowflake and other engines. |
+| Unity Catalog | Centralised catalog and governance layer, primarily used in Databricks-oriented platforms. |
 
 ## License
 
