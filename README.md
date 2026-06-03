@@ -136,8 +136,8 @@ helm install hive-metastore oci://quay.io/okdp/charts/hive-metastore \
 ```
 kubectl -n hive-metastore get pods
 NAME                              READY   STATUS    RESTARTS   AGE
-hive-metastore-65c5b98fb4-4z6kj   1/1     Running   0          3m
-hive-metastore-65c5b98fb4-pqcjq   1/1     Running   0          3m
+hive-metastore-...                1/1     Running   0          3m
+hive-metastore-...                1/1     Running   0          3m
 ```
 
 The chart's schema-init Job is registered as a `post-install` Helm hook. If `helm install` returned `STATUS: deployed`, the Job ran and completed successfully (Helm would have failed otherwise). The Job is then auto-cleaned by Kubernetes after `ttlSecondsAfterFinished` (60 seconds by default), so it does not appear in `kubectl get jobs` afterwards.
