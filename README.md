@@ -84,11 +84,11 @@ The chart references two Kubernetes Secrets, one for the database password and o
 kubectl create namespace hive-metastore
 
 kubectl -n hive-metastore create secret generic hive-metastore-db \
-  --from-literal=password='<database-password>'
+  --from-literal=password='REPLACE_WITH_DB_PASSWORD'
 
 kubectl -n hive-metastore create secret generic hive-metastore-s3 \
-  --from-literal=accessKey='<s3-access-key>' \
-  --from-literal=secretKey='<s3-secret-key>'
+  --from-literal=accessKey='REPLACE_WITH_S3_ACCESS_KEY' \
+  --from-literal=secretKey='REPLACE_WITH_S3_SECRET_KEY'
 ```
 
 ### 2. Create a local `values.yaml`
@@ -98,7 +98,7 @@ Create a `values.yaml` file in the current directory with at least the database 
 ```sh
 cat > values.yaml <<'EOF'
 db:
-  host: <postgres-hostname>
+  host: REPLACE_WITH_POSTGRES_HOSTNAME
   port: 5432
   databaseName: hms
   user:
@@ -108,7 +108,7 @@ db:
       propertyName: password
 
 s3:
-  url: <s3-endpoint>
+  url: REPLACE_WITH_S3_ENDPOINT
   warehouseDirectory: s3a://warehouse
   accessKey:
     secretName: hive-metastore-s3
@@ -135,14 +135,12 @@ helm install hive-metastore oci://quay.io/okdp/charts/hive-metastore \
 
 ```
 kubectl -n hive-metastore get pods
-NAME                       READY   STATUS      AGE
-hive-metastore-...         1/1     Running     1m
-hive-metastore-...         1/1     Running     1m
-hive-metastore-...         0/1     Completed   1m
-
-kubectl -n hive-metastore logs job/hive-metastore
-DATABASE SCHEMA SHOULD BE OK NOW!!
+NAME                              READY   STATUS    RESTARTS   AGE
+hive-metastore-65c5b98fb4-4z6kj   1/1     Running   0          3m
+hive-metastore-65c5b98fb4-pqcjq   1/1     Running   0          3m
 ```
+
+The chart's schema-init Job is registered as a `post-install` Helm hook. If `helm install` returned `STATUS: deployed`, the Job ran and completed successfully (Helm would have failed otherwise). The Job is then auto-cleaned by Kubernetes after `ttlSecondsAfterFinished` (60 seconds by default), so it does not appear in `kubectl get jobs` afterwards.
 
 ### Cleanup
 
