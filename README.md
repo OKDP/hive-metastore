@@ -53,6 +53,18 @@ For the upstream service design and protocol details, see the [Apache Hive Metas
 
 Known-good baseline: chart `1.4.0` with image `4.0.1`, Helm 3 and Kubernetes `1.30`. This is the version set validated by the maintainers.
 
+PostgreSQL is the default backend recommended by OKDP because the [okdp-sandbox](https://github.com/OKDP/okdp-sandbox) already provisions a managed Postgres instance through the [CloudNativePG operator](https://cloudnative-pg.io/), and the bundled PostgreSQL JDBC driver is kept up to date in the image. The chart also supports MySQL by setting `db.driverName: mysql`.
+
+### Toolchain tested
+
+| Tool | Version |
+|---|---|
+| Kubernetes (Kind) | `1.30.0` |
+| Kind | `0.23.0` |
+| Helm CLI | `3.18.4` |
+| kubectl | `1.33.2` |
+| Docker | `28.2.2` |
+
 ## Quick Start
 
 The chart requires external PostgreSQL + S3 to actually deploy. See [Installation](#installation) below for the full procedure. To quickly verify that the published artifacts are accessible:
@@ -65,6 +77,8 @@ helm pull oci://quay.io/okdp/charts/hive-metastore --version 1.4.0
 ### Expected result
 
 ```
+4.0.1: Pulling from okdp/hive-metastore
+Digest: sha256:f68b17b314aa70c03fb2e5e2a1fce4bac142f56a69732cad9e23db439e45e62f
 Status: Downloaded newer image for quay.io/okdp/hive-metastore:4.0.1
 quay.io/okdp/hive-metastore:4.0.1
 
@@ -133,6 +147,23 @@ helm install hive-metastore oci://quay.io/okdp/charts/hive-metastore \
 
 ### Expected result
 
+`helm install` returns once the post-install schema-init Job has completed:
+
+```
+Pulled: quay.io/okdp/charts/hive-metastore:1.4.0
+Digest: sha256:ecb29c65e0a937175fe3bf51c10e45226d71a84e729662eeea85d8330ccdeef3
+NAME: hive-metastore
+LAST DEPLOYED: <timestamp>
+NAMESPACE: hive-metastore
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+```
+
+The schema-init Job is registered as a `post-install` Helm hook. If `helm install` returned `STATUS: deployed`, the Job ran and completed successfully (Helm would have failed otherwise). The Job is then auto-cleaned by Kubernetes after `ttlSecondsAfterFinished` (60 seconds by default), so it does not appear in `kubectl get jobs` afterwards.
+
+Verify the metastore pods are running:
+
 ```
 kubectl -n hive-metastore get pods
 NAME                              READY   STATUS    RESTARTS   AGE
@@ -140,7 +171,7 @@ hive-metastore-...                1/1     Running   0          3m
 hive-metastore-...                1/1     Running   0          3m
 ```
 
-The chart's schema-init Job is registered as a `post-install` Helm hook. If `helm install` returned `STATUS: deployed`, the Job ran and completed successfully (Helm would have failed otherwise). The Job is then auto-cleaned by Kubernetes after `ttlSecondsAfterFinished` (60 seconds by default), so it does not appear in `kubectl get jobs` afterwards.
+The pod hash suffix (`...`) varies per install.
 
 ### Cleanup
 
