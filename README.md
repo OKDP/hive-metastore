@@ -20,13 +20,6 @@ Compared with each SQL engine managing its own catalog, a shared metastore lets 
 
 Together they let Spark, Trino and Hive share a single metadata catalog backed by PostgreSQL/MySQL and S3-compatible object storage.
 
-## Components
-
-| Artifact | Registry | Description |
-|---|---|---|
-| Docker image | [`quay.io/okdp/hive-metastore`](https://quay.io/repository/okdp/hive-metastore) | Apache Hive standalone metastore, PostgreSQL/MySQL JDBC drivers, S3A connector and JMX Prometheus exporter. Multi-arch `linux/amd64` and `linux/arm64`. Currently published tags: `4.0.1`, `4.0.1-1.4.0`. |
-| Helm chart | [`quay.io/okdp/charts/hive-metastore`](https://quay.io/repository/okdp/charts/hive-metastore) | Deployment, init Job, NetworkPolicy, HPA, ServiceAccount, Service and ConfigMap (optional, for `configOverrides`). Current version `1.4.0`. |
-
 ## Architecture
 
 <p align="center">
@@ -43,7 +36,7 @@ Together they let Spark, Trino and Hive share a single metadata catalog backed b
 
 For the upstream service design and protocol details, see the [Apache Hive Metastore design documentation](https://cwiki.apache.org/confluence/display/hive/design#Design-Metastore).
 
-## Prerequisites
+## Requirements
 
 - Kubernetes cluster (>= 1.19)
 - [Helm](https://helm.sh/) >= 3
@@ -209,6 +202,17 @@ The full chart values reference is in the [Helm chart README](helm/hive-metastor
 | `image.repository` | Docker image repository | `quay.io/okdp/hive-metastore` |
 | `image.tag` | Image tag (override with a published version, e.g. `4.0.1`) | `latest` |
 
+## Components
+
+| Artifact | Registry | Description |
+|---|---|---|
+| Docker image | [`quay.io/okdp/hive-metastore`](https://quay.io/repository/okdp/hive-metastore) | Apache Hive standalone metastore, PostgreSQL/MySQL JDBC drivers, S3A connector and JMX Prometheus exporter. Multi-arch `linux/amd64` and `linux/arm64`. Currently published tags: `4.0.1`, `4.0.1-1.4.0`. |
+| Helm chart | [`quay.io/okdp/charts/hive-metastore`](https://quay.io/repository/okdp/charts/hive-metastore) | Deployment, init Job, NetworkPolicy, HPA, ServiceAccount, Service and ConfigMap (optional, for `configOverrides`). Current version `1.4.0`. |
+
+## OKDP Integration
+
+Hive Metastore is part of the [OKDP](https://okdp.io) data platform stack, packaged as a [KuboCD service](https://github.com/OKDP/platform-packages/blob/main/packages/services/hive-metastore/hive-metastore.yaml) alongside Trino, Spark and other OKDP services. It can be deployed on the [okdp-sandbox](https://github.com/OKDP/okdp-sandbox) Kind cluster as the shared metadata catalog for the platform's SQL engines.
+
 ## Alternatives
 
 Hive Metastore is a good fit when Spark, Trino, Hive or compatible engines need a shared catalog for tables on object storage. Other catalog options may be a better fit depending on the table format and governance model:
@@ -219,9 +223,9 @@ Hive Metastore is a good fit when Spark, Trino, Hive or compatible engines need 
 | Apache Polaris | REST catalog for Apache Iceberg, shared across Spark, Trino, Snowflake and other engines. |
 | Unity Catalog | Centralised catalog and governance layer, primarily used in Databricks-oriented platforms. |
 
-## License
+## Contributing & License
 
-[Apache License 2.0](LICENSE)
+Contributions follow the [OKDP contribution guide](https://github.com/OKDP/.github/blob/main/CONTRIBUTING.md). Released under the [Apache License 2.0](LICENSE).
 
 ---
 
