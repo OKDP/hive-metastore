@@ -174,6 +174,8 @@ Remove the Helm release:
 helm uninstall hive-metastore -n hive-metastore
 ```
 
+Note that after uninstal hive-metastore, the schema created in the PostgreSQL database will remain.
+
 If the namespace was created only for this installation, remove it too:
 
 ```sh
