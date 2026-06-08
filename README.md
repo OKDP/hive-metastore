@@ -219,7 +219,7 @@ The full chart values reference is in the [Helm chart README](helm/hive-metastor
 
 ## OKDP Integration
 
-Hive Metastore is part of the [OKDP](https://okdp.io) data platform stack, packaged as a [KuboCD service](https://github.com/OKDP/platform-packages/blob/main/packages/services/hive-metastore/hive-metastore.yaml) alongside Trino, Spark and other OKDP services. It can be deployed on the [okdp-sandbox](https://github.com/OKDP/okdp-sandbox) Kind cluster as the shared metadata catalog for the platform's SQL engines.
+Hive Metastore is part of the OKDP data platform stack, packaged as a KuboCD service alongside Trino, Spark and other OKDP services. It can be deployed on the okdp-sandbox Kind cluster as the shared metadata catalog for the platform's SQL engines.
 
 ## Alternatives
 
