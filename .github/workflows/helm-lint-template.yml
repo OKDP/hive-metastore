@@ -92,7 +92,7 @@ jobs:
         if: |
           ${{ ((github.event_name == 'push') || (github.event_name == 'pull_request'
                 && github.event.pull_request.head.repo.full_name == github.repository)) }}
-        uses: EndBug/add-and-commit@777a761e0f8293b7b051170404976d7cf10611cb # v9.1.4
+        uses: EndBug/add-and-commit@a94899bca583c204427a224a7af87c02f9b325d5 # v9.1.4
         with:
           pull: "--rebase --autostash"
           add: "**/README.md"
