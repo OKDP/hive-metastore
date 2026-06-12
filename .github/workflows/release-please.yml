@@ -52,7 +52,7 @@ jobs:
     # The pull request should come from the same repo (github_token from the fork does not have write permissions)
     if: github.repository_owner == 'OKDP' && github.event.pull_request.merged == true && github.event.pull_request.head.repo.full_name == github.repository
     steps:
-      - uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4.4.1
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         id: release-please
 
   metastore-versions:
