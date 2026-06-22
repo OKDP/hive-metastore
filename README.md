@@ -141,8 +141,11 @@ EOF
 helm install hive-metastore oci://quay.io/okdp/charts/hive-metastore \
   --version 1.4.0 \
   --namespace hive-metastore \
-  -f values.yaml
+  -f values.yaml \
+  --timeout 10m
 ```
+
+The default Helm timeout (5 minutes) can be too short on first install because the metastore image is ~1.3 GB to pull. `--timeout 10m` gives the post-install schema-init Job enough time to complete.
 
 ### Expected result
 
@@ -180,7 +183,7 @@ Remove the Helm release:
 helm uninstall hive-metastore -n hive-metastore
 ```
 
-Note that after uninstal hive-metastore, the schema created in the PostgreSQL database will remain.
+Note that after uninstalling hive-metastore, the schema created in the PostgreSQL database will remain.
 
 If the namespace was created only for this installation, remove it too:
 
