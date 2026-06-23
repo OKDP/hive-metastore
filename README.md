@@ -145,7 +145,7 @@ helm install hive-metastore oci://quay.io/okdp/charts/hive-metastore \
   --timeout 10m
 ```
 
-The default Helm timeout (5 minutes) can be too short on first install because the metastore image is ~1.3 GB to pull. `--timeout 10m` gives the post-install schema-init Job enough time to complete.
+`--timeout 10m` is recommended on first install (the ~1.3 GB image pull can exceed the default 5 min timeout).
 
 ### Expected result
 
