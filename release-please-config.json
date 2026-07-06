@@ -1,6 +1,7 @@
 {
   "separate-pull-requests": true,
   "include-v-in-tag": true,
+  "draft-pull-request": true,
   "packages": {
     "helm/hive-metastore": {
       "component": "helm-hive-metastore",
