@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.1](https://github.com/OKDP/hive-metastore/compare/helm-hive-metastore/v1.4.0...helm-hive-metastore/v1.4.1) (2026-05-04)
+
+
+### Documentation
+
+* hive-metastore documentation audit ([9399bc2](https://github.com/OKDP/hive-metastore/commit/9399bc23a8b4b72254bc1f4c52612b375b124024))
+* hive-metastore documentation audit ([1122ce1](https://github.com/OKDP/hive-metastore/commit/1122ce147b4c068193c458000d5c231fb70884e0))
+
 ## [1.4.0](https://github.com/OKDP/hive-metastore/compare/helm-hive-metastore/v3.1.3-1.3.0...helm-hive-metastore/v1.4.0) (2025-12-03)
 
 

@@ -16,8 +16,9 @@
 
 apiVersion: v2
 name: hive-metastore
-description: A Helm chart to deploy Apache Hive Metastore on Kubernetes, with PostgreSQL backend and S3 warehouse storage.
-version: 1.4.0
+description: A Helm chart to deploy Apache Hive Metastore on Kubernetes, with
+  PostgreSQL backend and S3 warehouse storage.
+version: 1.4.1
 sources:
   - https://github.com/okdp/hive-metastore
 appVersion: 3.1.3
